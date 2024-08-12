@@ -1,0 +1,25 @@
+{
+  "City": {
+    "House1": {
+      "Bedroom": [
+        "Bed",
+        "Dresser"
+      ],
+      "Kitchen": [
+        "Fridge",
+        "Stove",
+        "Sink"
+      ]
+    },
+    "House2": {
+      "Office": [
+        "Desk"
+      ],
+      "Bathroom": [
+        "Toilet",
+        "Sink",
+        "Shower"
+      ]
+    }
+  }
+}
