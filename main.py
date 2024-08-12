@@ -21,6 +21,7 @@ class BasicLocation:
 
   def add_sub_location(self, sub_location: 'BasicLocation') -> None:
     self.sub_locations.append(sub_location)
+
     sub_location.parent_location = self
 
   def sub_locations_here(self) -> str:
@@ -29,7 +30,7 @@ class BasicLocation:
     ]
 
   def who_is_here(self) -> str:
-    return 'Characters: \n' + '\n'.join(self.characters)
+    return ', '.join(self.characters)
 
   def __str__(self) -> str:
     return f"Location: {self.name}\n{self.who_is_here()}"
@@ -53,8 +54,9 @@ class GenericConnection(BasicLocation):
     super().__init__(name, background_day, background_night)
 
 
-class GenericStuff:
+class GenericStuff(BasicLocation):
   def __init__(self, name: str):
+    super().__init__(name)
     self.name = name
 
   def __str__(self):
@@ -68,15 +70,24 @@ class Town(BasicLocation):
   def buildings_here(self) -> str:
     return 'Buildings: \n' + '\n'.join([building.name for building in self.sub_locations])
 
-  def where_is(self, character: str) -> str:
-    for building in self.sub_locations:
-      if character in building.characters:
-        return f"{character} is in {building.name}"
-      for room in building.sub_locations:
-        if character in room.characters:
-          return f"{character} is in {room.name}"
+  def _rec(self, location: BasicLocation, character: str):
+    print(location.name, location.characters)
+    if character in location.characters:
+      return f"{character} is in {location.name}"
 
-    return f"{character} is not in any building"
+    a = None
+
+    if location.sub_locations is None:
+      return None
+
+    for sub_location in location.sub_locations:
+      a = self._rec(sub_location, character)
+
+      if a is not None:
+        return a
+
+  def where_is(self, character: str) -> str:
+    return self._rec(self, character)
 
 
 if __name__ == "__main__":
@@ -124,8 +135,38 @@ if __name__ == "__main__":
   bathroom.add_sub_location(sink)
   bathroom.add_sub_location(shower)
 
+  building2.add_sub_location(office)
+  building2.add_sub_location(bathroom)
+
   nexuz.add_sub_location(building1)
   nexuz.add_sub_location(building2)
 
-  print(nexuz.buildings_here())
-  print(nexuz.where_is("John"))
+  current_location = nexuz
+  while True:
+    someone = f', aquí se encuentra {current_location.who_is_here()}' if len(
+      current_location.characters) > 0 else ', aquí no hay nadie'
+
+    print(current_location.sub_locations_here())
+
+    print(f'Estas en {current_location.name} {someone}')
+    print('Puedes ir a: ')
+    for i, sub_location in enumerate(current_location.sub_locations):
+      print(f'{i + 1}. {sub_location.name}')
+
+    if current_location.parent_location is not None:
+      print('0. Regresar')
+
+    to = input('> ')
+
+    try:
+      to = int(to) - 1
+
+      print(to)
+
+      if to == -1:
+        current_location = current_location.parent_location
+        continue
+
+      current_location = current_location.sub_locations[to]
+    except:
+      continue
