@@ -45,9 +45,6 @@ class Building(BasicLocation):
   def __init__(self, name: str, background_day: str = None, background_night: str = None):
     super().__init__(name, background_day, background_night)
 
-  def rooms_here(self) -> str:
-    return 'Rooms: \n' + '\n'.join([room.name for room in self.sub_locations])
-
 
 class GenericConnection(BasicLocation):
   def __init__(self, name: str, background_day: str = None, background_night: str = None):
@@ -67,9 +64,6 @@ class Town(BasicLocation):
   def __init__(self, name: str):
     super().__init__(name)
 
-  def buildings_here(self) -> str:
-    return 'Buildings: \n' + '\n'.join([building.name for building in self.sub_locations])
-
   def _rec(self, location: BasicLocation, character: str):
     print(location.name, location.characters)
     if character in location.characters:
@@ -77,11 +71,24 @@ class Town(BasicLocation):
 
     a = None
 
-    if location.sub_locations is None:
-      return None
-
     for sub_location in location.sub_locations:
       a = self._rec(sub_location, character)
+
+      if a is not None:
+        return a
+
+  def get_location(self, location_name: str, location: BasicLocation = None) -> BasicLocation:
+    if location is None:
+      location = self
+
+    print(location.name, location.characters)
+    if location.name == location_name:
+      return location
+
+    a = None
+
+    for sub_location in location.sub_locations:
+      a = self.get_location(location_name, sub_location)
 
       if a is not None:
         return a
@@ -91,62 +98,47 @@ class Town(BasicLocation):
 
 
 if __name__ == "__main__":
-  nexuz = Town("Nexuz")
-  building1 = Building("Building 1")
+  nexis = Town('Nexis (ネクシス)')
 
-  bedroom = Room("Bedroom")
+  school = Building("School", "bg school")
 
-  bed = GenericStuff("Bed")
-  dresser = GenericStuff("Dresser")
+  main_entrance = Room("Main Entrance", "bg main_entrance")
+  left_corridor = GenericConnection("Left Corridor", "bg left_corridor")
+  right_corridor = GenericConnection("Right Corridor", "bg right_corridor")
 
-  kitchen = Room("Kitchen")
+  club_room = Room("Club Room", "bg club_day", "bg club_afternoon")
+  classroom_2 = Room("Classroom 2", "bg class_room_day", "bg class_room_afternoon")
+  classroom_3 = Room("Classroom 3", "bg class_room_day", "bg class_room_afternoon")
 
-  fridge = GenericStuff("Fridge")
-  stove = GenericStuff("Stove")
-  sink = GenericStuff("Sink")
+  closet = Room("Closet", "bg closet")
 
-  building1.add_sub_location(bedroom)
-  building1.add_sub_location(kitchen)
+  classroom_2.add_sub_location(closet)
 
-  bedroom.add_sub_location(bed)
-  bedroom.add_sub_location(dresser)
+  left_corridor.add_sub_location(club_room)
+  left_corridor.add_sub_location(classroom_2)
+  left_corridor.add_sub_location(classroom_3)
 
-  kitchen.add_sub_location(fridge)
-  kitchen.add_sub_location(stove)
-  kitchen.add_sub_location(sink)
+  man_bathroom = Room("Man Bathroom", "bg man_bathroom")
+  woman_bathroom = Room("Woman Bathroom", "bg woman_bathroom")
 
-  building2 = Building("Building 2")
+  right_corridor.add_sub_location(man_bathroom)
+  right_corridor.add_sub_location(woman_bathroom)
 
-  office = Room("Office")
+  main_entrance.add_sub_location(left_corridor)
+  main_entrance.add_sub_location(right_corridor)
 
-  desk = GenericStuff("Desk")
+  nexis.add_sub_location(school)
 
-  office.add_sub_location(desk)
+  nexis.get_location('Club Room').add_character('Monika')
 
-  office.add_character("John")
+  print(nexis.where_is("Monika"))
 
-  bathroom = Room("Bathroom")
-
-  toilet = GenericStuff("Toilet")
-  sink = GenericStuff("Sink")
-  shower = GenericStuff("Shower")
-
-  bathroom.add_sub_location(toilet)
-  bathroom.add_sub_location(sink)
-  bathroom.add_sub_location(shower)
-
-  building2.add_sub_location(office)
-  building2.add_sub_location(bathroom)
-
-  nexuz.add_sub_location(building1)
-  nexuz.add_sub_location(building2)
-
-  current_location = nexuz
+  current_location = club_room
   while True:
     someone = f', aquí se encuentra {current_location.who_is_here()}' if len(
       current_location.characters) > 0 else ', aquí no hay nadie'
 
-    print(current_location.sub_locations_here())
+    print(current_location.choices)
 
     print(f'Estas en {current_location.name} {someone}')
     print('Puedes ir a: ')
