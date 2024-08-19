@@ -45,6 +45,13 @@ def main():
   # thread.start()
 
   current_location = town.get_location('Club Room')
+  town.get_location("Closet").add_character("Monika")
+  town.get_location("Woman Bathroom").add_character("Yuri")
+  current_location.add_character("Sayori")
+  current_location.add_character("Natsuki")
+
+  print(town.get_characters())
+
   while True:
     someone = f'Aquí se encuentra {current_location.who_is_here()}' if len(
         current_location.characters) > 0 else 'Aquí no hay nadie'

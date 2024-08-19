@@ -133,7 +133,7 @@ class Town(BasicLocation):
   def __repr__(self) -> str:
     return super().__str__()
 
-  def get_location(self, location_name: str, location: BasicLocation = None) -> BasicLocation:
+  def get_location(self, location_name: str, location: BasicLocation | None = None) -> BasicLocation:
     if location is None:
       location = self
 
@@ -147,6 +147,20 @@ class Town(BasicLocation):
 
       if a is not None:
         return a
+
+  def get_characters(self, location: BasicLocation | None = None) -> list[str]:
+    characters = {}
+
+    if location is None:
+      location = self
+
+    if len(location.characters) > 0:
+      characters[location.name] = location.characters
+
+    for sub_location in location.sub_locations:
+      characters.update(self.get_characters(sub_location))
+
+    return characters
 
   def where_is(self, character: str) -> str:
     return self._rec(self, character)
