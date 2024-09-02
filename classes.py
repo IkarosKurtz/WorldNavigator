@@ -190,16 +190,16 @@ class WorldWeather:
     clouds = random.uniform(*conditions['clouds'])
     return {'weather': weather, 'temperature': temperature, 'humidity': humidity, 'wind': wind, 'clouds': clouds}
 
-  def transition_weather(self, initial_conditions, final_conditions, duration_hours):
-    for hour in range(duration_hours):
+  def transition_weather(self, initial_conditions: dict, final_conditions: dict, duration_minutes: str):
+    for hour in range(duration_minutes):
       temperature = self._interpolate(
-          initial_conditions['temperature'], final_conditions['temperature'], hour, duration_hours)
+          initial_conditions['temperature'], final_conditions['temperature'], hour, duration_minutes)
       humidity = self._interpolate(
-          initial_conditions['humidity'], final_conditions['humidity'], hour, duration_hours)
+          initial_conditions['humidity'], final_conditions['humidity'], hour, duration_minutes)
       wind = self._interpolate(
-          initial_conditions['wind'], final_conditions['wind'], hour, duration_hours)
+          initial_conditions['wind'], final_conditions['wind'], hour, duration_minutes)
       clouds = self._interpolate(
-          initial_conditions['clouds'], final_conditions['clouds'], hour, duration_hours)
+          initial_conditions['clouds'], final_conditions['clouds'], hour, duration_minutes)
       print(
           f"Hour {hour*2}: Weather: {final_conditions['weather']}, Temperature: {temperature:.2f}°C, Humidity: {humidity:.2f}%, Wind: {wind:.2f} km/h, Clouds: {clouds:.2f}%")
 
@@ -238,6 +238,8 @@ if __name__ == "__main__":
   world_weather = WorldWeather()
   gen = world_weather.simulate_weather_with_transitions(720)
 
-  for g in gen:
-    input('')
-    print(g['temperature'])
+  print(next(gen))
+  print(next(gen))
+
+  for _ in range(1000):
+    print(next(gen))
