@@ -1,11 +1,14 @@
 {
   "T-Nexis (ネクシス)": {
     "B-School": {
+      "to": [
+        "B-Park",
+        "S-West Street"
+      ],
       "day": "bg school",
       "R-Main Entrance": {
         "day": "bg main_entrance",
-        "dfd": "dfdf",
-        "GC-Left Corridor": {
+        "C-Left Corridor": {
           "day": "bg left_corridor",
           "R-Club Room": {
             "day": "bg club_day",
@@ -23,7 +26,7 @@
             "afternoon": "bg class_room_afternoon"
           }
         },
-        "GC-Right Corridor": {
+        "C-Right Corridor": {
           "day": "bg right_corridor",
           "R-Man Bathroom": {
             "day": "bg man_bathroom"
@@ -33,6 +36,18 @@
           }
         }
       }
+    },
+    "S-West Street": {
+      "to": [
+        "B-School"
+      ],
+      "day": "bg w_street"
+    },
+    "B-Park": {
+      "to": [
+        "S-West Street"
+      ],
+      "day": "bg park"
     }
   }
 }

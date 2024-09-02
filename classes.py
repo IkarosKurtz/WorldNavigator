@@ -1,7 +1,23 @@
+from enum import Enum
 import math
 import random
 import time
 from typing import Generator, Optional
+
+
+class ExtendedEnum(Enum):
+
+  @classmethod
+  def list(cls) -> list[str]:
+    return [e.value for e in cls]
+
+
+class LocationType(ExtendedEnum):
+  Room = 'R'
+  Corridor = 'C'
+  Building = 'B'
+  Street = 'S'
+  Town = 'T'
 
 
 class LocationBackground:
@@ -36,6 +52,9 @@ class BasicLocation(LocationBackground):
     self.characters: list[str] = []
     self.sub_locations: list['BasicLocation'] = []
     self.parent_location: Optional['BasicLocation'] = None
+    self.is_indoor: bool = False
+    self.type: Optional[LocationType] = None
+    self._to: Optional[str] = None
 
   def add_character(self, character: str) -> None:
     self.characters.append(character)
@@ -93,6 +112,8 @@ class Room(BasicLocation):
               background_afternoon: str = None,
               background_night: str = None):
     super().__init__(name, background_day, background_afternoon, background_night)
+    self.is_indoor = True
+    self.type = LocationType.Room
 
 
 class Building(BasicLocation):
@@ -102,20 +123,34 @@ class Building(BasicLocation):
               background_afternoon: str = None,
               background_night: str = None):
     super().__init__(name, background_day, background_afternoon, background_night)
+    self.type = LocationType.Building
 
 
-class GenericConnection(BasicLocation):
+class Street(BasicLocation):
   def __init__(self,
               name: str,
               background_day: str,
               background_afternoon: str = None,
               background_night: str = None):
     super().__init__(name, background_day, background_afternoon, background_night)
+    self.type = LocationType.Street
+
+
+class Corridor(BasicLocation):
+  def __init__(self,
+              name: str,
+              background_day: str,
+              background_afternoon: str = None,
+              background_night: str = None):
+    super().__init__(name, background_day, background_afternoon, background_night)
+    self.type = LocationType.Corridor
 
 
 class Town(BasicLocation):
   def __init__(self, name: str):
     super().__init__(name, ' ')
+    self.type = LocationType.Town
+    self.loc_categories = {}
 
   def _rec(self, loc: BasicLocation, character: str):
     if character in loc.characters:

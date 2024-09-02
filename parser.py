@@ -1,15 +1,17 @@
 import json
-from classes import BasicLocation, GenericConnection, Room, Town, Building
+from classes import BasicLocation, Corridor, Room, Street, Town, Building, LocationType
 
 
 class WorldParser:
   def __init__(self, path: str) -> None:
     self._path = path
+
     self._types = {
       "T": Town,
       "B": Building,
       "R": Room,
-      "GC": GenericConnection
+      "S": Street,
+      "C": Corridor,
     }
 
   def _get_class(self, type: str):
@@ -33,12 +35,29 @@ class WorldParser:
     with open(self._path, 'r', encoding='utf-8') as f:
       data: dict[str, dict] = json.load(f)
 
+    loc_categories = {
+      key: []
+      for key in LocationType.list()
+    }
+
+    def link_references(t: Town):
+      all_locations = [s for s in self.get_locations(t) if s._to is not None]
+      print(all_locations)
+
+      for loc in all_locations:
+        for to in loc._to:
+          clean_to = to.split('-')[1]
+          sub_loc = t.get_location(clean_to)
+          print(f'Linking {loc.name} to {sub_loc.name}')
+
+          loc.add_sub_location(sub_loc)
+
     def wrapper(data: dict[str, dict]):
       locations = []
       for key, value in data.items():
         if any(key.startswith(t) for t in self._types):
 
-          if day := value.get('day', None) is None:
+          if (day := value.get('day', None)) is None:
             raise ValueError(f"Missing day background for {key}")
 
           day = value['day']
@@ -47,6 +66,11 @@ class WorldParser:
 
           type, name = key.split('-')
           location = self._get_class(type)(name, day, afternoon, night)
+
+          loc_categories[location.type.value].append(location)
+
+          if (to := value.get('to', None)) is not None:
+            location._to = to
 
           more = wrapper(value)
 
@@ -65,6 +89,10 @@ class WorldParser:
         town = Town(key.split('-')[1])
 
       town.add_sub_locations(wrapper(value))
+      town.loc_categories = loc_categories
+
+      link_references(town)
+
       return town
 
 
@@ -73,6 +101,8 @@ if __name__ == "__main__":
   world = parser.unpack()
 
   # for location in world:
-  #   print(location.name)
-
-  print(parser.get_locations(world))
+  # print(location.name)
+  # print(world.loc_categories)
+  # print(parser.get_locations(world))
+  school = world.get_location('School')
+  print(school.sub_locations_here())
