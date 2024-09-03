@@ -117,9 +117,9 @@ if __name__ == "__main__":
 
   wrap(world)
 
-  print(world.get_location('School', 'B').sub_locations_here())
+  print(world.get_location('School', 'B'))
   print(world.all_locations)
-  print(world.loc_categories)
+  # print(world.loc_categories)
   # school = world.get_location('School')
   # print(school.sub_locations_here())
   # print(parser.get_locations(world))

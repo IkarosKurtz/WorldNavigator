@@ -81,8 +81,8 @@ class BasicLocation(LocationBackground):
     return self.referenced_locations + self.sub_locations
 
   def __str__(self) -> str:
-    sub_locations = '\n\t'.join(str(sl) for sl in self.sub_locations)
-    return f"Location: {self.name}\nSub Locations: {sub_locations}\n"
+    parent_name = self.parent_location.name if self.parent_location is not None else 'None'
+    return f"Location({self.name}, type={self.type.value}, parent={parent_name}, no_sub_locations={len(self.sub_locations)})"
 
   def __repr__(self) -> str:
     return self.name

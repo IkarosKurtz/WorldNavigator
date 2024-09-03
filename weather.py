@@ -30,56 +30,64 @@ class WorldWeather:
     clouds = random.uniform(*conditions['clouds'])
     return {'weather': weather, 'temperature': temperature, 'humidity': humidity, 'wind': wind, 'clouds': clouds}
 
-  def transition_weather(self, initial_conditions: dict, final_conditions: dict, duration_minutes: str):
-    for hour in range(duration_minutes):
+  def _transition_weather(self, initial_conditions: dict, final_conditions: dict, duration_period: str):
+    steps = []
+    for hour in range(duration_period):
       temperature = self._interpolate(
-          initial_conditions['temperature'], final_conditions['temperature'], hour, duration_minutes)
+          initial_conditions['temperature'], final_conditions['temperature'], hour, duration_period)
       humidity = self._interpolate(
-          initial_conditions['humidity'], final_conditions['humidity'], hour, duration_minutes)
+          initial_conditions['humidity'], final_conditions['humidity'], hour, duration_period)
       wind = self._interpolate(
-          initial_conditions['wind'], final_conditions['wind'], hour, duration_minutes)
+          initial_conditions['wind'], final_conditions['wind'], hour, duration_period)
       clouds = self._interpolate(
-          initial_conditions['clouds'], final_conditions['clouds'], hour, duration_minutes)
+          initial_conditions['clouds'], final_conditions['clouds'], hour, duration_period)
       print(
-          f"Hour {hour*2}: Weather: {final_conditions['weather']}, Temperature: {temperature:.2f}°C, Humidity: {humidity:.2f}%, Wind: {wind:.2f} km/h, Clouds: {clouds:.2f}%")
+          f"Hour {hour + 1}: Weather: {final_conditions['weather']}, Temperature: {temperature:.2f}°C, Humidity: {humidity:.2f}%, Wind: {wind:.2f} km/h, Clouds: {clouds:.2f}%")
 
-      yield {
-          'weather': final_conditions['weather'],
+      steps.append({
+        'weather': final_conditions['weather'],
+        'data': {
           'temperature': temperature,
           'humidity': humidity,
           'wind': wind,
           'clouds': clouds
-      }
+        }
+      })
 
-  def simulate_weather_with_transitions(self, total_duration_minutes: int, last_weather: str = 'Sunny') -> Generator[str, None, None]:
+    return steps
+
+  def simulate_weather_with_transitions(self, total_duration: int, last_weather: str = 'Sunny') -> Generator[str, None, None]:
     current_conditions = self._generate_weather(last_weather)
-    remaining_minutes = total_duration_minutes
+    remaining_period = total_duration
 
-    while remaining_minutes > 0:
+    timestamps = []
+
+    while remaining_period > 0:
       # Define the duration of the next transition
-      transition_duration = random.randint(30, 60)  # Example transition from 1 to 4 hours (30 to 240 minutes)
+      transition_duration = random.randint(2, 6)
+
+      if (remaining_period - transition_duration) < 0:
+        transition_duration = remaining_period
 
       # Choose the next weather
       new_weather = random.choice(list(self.weather.keys()))
       final_conditions = self._generate_weather(new_weather)
 
       # Perform the transition
-      transition_gen = self.transition_weather(current_conditions, final_conditions, transition_duration)
+      transition_gen = self._transition_weather(current_conditions, final_conditions, transition_duration)
 
-      for transition in transition_gen:
-        yield transition
+      timestamps.extend(transition_gen)
 
       # Update for the next transition
       current_conditions = final_conditions
-      remaining_minutes -= transition_duration
+      remaining_period -= transition_duration
+
+    return timestamps
 
 
 if __name__ == "__main__":
   world_weather = WorldWeather()
-  gen = world_weather.simulate_weather_with_transitions(720)
+  steps = world_weather.simulate_weather_with_transitions(8)
 
-  print(next(gen))
-  print(next(gen))
-
-  for _ in range(1000):
-    print(next(gen))
+  print(steps)
+  print(len(steps))
