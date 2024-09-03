@@ -3,6 +3,11 @@ from typing import Optional
 
 
 class LocationBackground:
+  """ 
+  Base clase for all backgrounds and their management.
+  For now it only accepts day, afternoon and night backgrounds, but I planing to add more or even add custom backgrounds.
+  """
+
   def __init__(self, day: str, afternoon: Optional[str] = None, night: Optional[str] = None):
     self.day: str = day
     self.afternoon: str = afternoon if afternoon is not None else day
@@ -11,7 +16,7 @@ class LocationBackground:
   def get_backgrounds(self) -> str:
     return (self.day, self.afternoon, self.night)
 
-  def get_background(self, time: tuple[int, int]) -> str:
+  def retrieve_scene_background(self, time: tuple[int, int]) -> str:
     hour, minute = time
 
     if 7 <= hour < 17:
@@ -23,6 +28,10 @@ class LocationBackground:
 
 
 class BasicLocation(LocationBackground):
+  """
+  Basic class for all locations, this class manage their basic methods and properties.
+  """
+
   def __init__(self,
               name: str,
               background_day: str,
@@ -96,6 +105,8 @@ class BasicLocation(LocationBackground):
 
 
 class Room(BasicLocation):
+  """ Just a Room class, is intended to be used inside a Building """
+
   def __init__(self,
               name: str,
               background_day: str,
@@ -107,6 +118,8 @@ class Room(BasicLocation):
 
 
 class Building(BasicLocation):
+  """ Just a Building class, is intended to see the outside of a Building, not inside """
+
   def __init__(self,
               name: str,
               background_day: str,
@@ -117,6 +130,8 @@ class Building(BasicLocation):
 
 
 class Street(BasicLocation):
+  """ Just a Street class, is intended to be used as a conection between Buildings and more Streets """
+
   def __init__(self,
               name: str,
               background_day: str,
@@ -127,6 +142,8 @@ class Street(BasicLocation):
 
 
 class Corridor(BasicLocation):
+  """ Just a Corridor class, is intended to be used as a conection between Rooms and more Corridors """
+
   def __init__(self,
               name: str,
               background_day: str,
@@ -138,6 +155,11 @@ class Corridor(BasicLocation):
 
 
 class World(BasicLocation):
+  """
+  This class is where all the locations are stored, you can get a location and where is some character.
+  You can't actually be in this location, for obvious reasons.
+  """
+
   def __init__(self, name: str):
     super().__init__(name, ' ')
     self.type = LocationType.World

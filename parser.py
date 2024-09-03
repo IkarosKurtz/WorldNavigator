@@ -3,6 +3,13 @@ from classes import BasicLocation, Corridor, Room, Street, Building, LocationTyp
 
 
 class WorldParser:
+  """
+  This class is used to create the World from a json file.
+  Why? Because is hard to read when is created from all the classes, and I want to keep it easy.
+
+  If you want to create a World please reed the **How to create a World** section in the README.
+  """
+
   def __init__(self) -> None:
     self._types = {
       "B": Building,

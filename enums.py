@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class LocationType(Enum):
+  """ Diferent types of locations that can be found in the world/schema. """
   Room = 'R'
   Corridor = 'C'
   Building = 'B'

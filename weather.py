@@ -3,6 +3,13 @@ from typing import Generator
 
 
 class WorldWeather:
+  """
+  This class is used to manage and simulate the weather of the world.
+  For now it can simulate the weather like in real life, but it works well for now.
+
+  This class will be improved in the future, but for now it's enough.
+  """
+
   def __init__(self) -> None:
     self.weather = {
         'Sunny': {'temperature': (25, 35), 'humidity': (10, 30), 'wind': (0, 10), 'clouds': (0, 20)},

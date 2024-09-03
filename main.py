@@ -58,7 +58,7 @@ def main():
 
     time = f'{game_time[0]:02}:{game_time[1]:02}'
 
-    print(f'\nHora: {time}\nEstas en {current_location.name}\nFondo: {current_location.get_background(game_time)}\n{someone}')
+    print(f'\nHora: {time}\nEstas en {current_location.name}\nFondo: {current_location.retrieve_scene_background(game_time)}\n{someone}')
     print('Puedes ir a: ')
     for i, sub_location in enumerate(current_location.all_sub_locations()):
       print(f'{i + 1}. {sub_location.name}')
