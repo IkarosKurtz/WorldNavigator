@@ -149,6 +149,7 @@ class Corridor(BasicLocation):
               background_afternoon: str = None,
               background_night: str = None):
     super().__init__(name, background_day, background_afternoon, background_night)
+    self.is_indoor = True
     self.type = LocationType.Corridor
 
 
@@ -157,6 +158,7 @@ class World(BasicLocation):
     super().__init__(name, ' ')
     self.type = LocationType.World
     self.loc_categories = {}
+    self.all_locations: list[BasicLocation] = []
 
   def _rec(self, loc: BasicLocation, character: str):
     if character in loc.characters:
@@ -184,6 +186,11 @@ class World(BasicLocation):
       return None
 
     for location in search_list:
+      if location.name == location_name:
+        return location
+
+  def get_location_by_name(self, location_name: str) -> BasicLocation | None:
+    for location in self.all_locations:
       if location.name == location_name:
         return location
 
