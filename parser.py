@@ -1,13 +1,10 @@
 import json
-from classes import BasicLocation, Corridor, Room, Street, Town, Building, LocationType
+from classes import BasicLocation, Corridor, Room, Street, Building, LocationType, World
 
 
 class WorldParser:
-  def __init__(self, path: str) -> None:
-    self._path = path
-
+  def __init__(self) -> None:
     self._types = {
-      "T": Town,
       "B": Building,
       "R": Room,
       "S": Street,
@@ -15,94 +12,103 @@ class WorldParser:
     }
 
   def _get_class(self, type: str):
-    if type in self._types:
-      return self._types[type]
+    return self._types[type]
 
-    raise ValueError(f"Unknown type: {type}")
-
-  def get_locations(self, location: BasicLocation) -> list[BasicLocation]:
-    locations = []
-
-    for sbl in location:
-      if len(sbl.sub_locations) > 0:
-        locations.extend(self.get_locations(sbl))
-
-      locations.append(sbl)
-
-    return locations
-
-  def unpack(self) -> Town:
-    with open(self._path, 'r', encoding='utf-8') as f:
+  def unpack(self, path: str) -> World:
+    with open(path, 'r', encoding='utf-8') as f:
+      json_name = f.name
       data: dict[str, dict] = json.load(f)
 
-    loc_categories = {
-      key: []
-      for key in LocationType.list()
-    }
+    world_name = json_name.split('.')[0]
 
-    def link_references(t: Town):
-      all_locations = [s for s in self.get_locations(t) if s._to is not None]
-      print(all_locations)
+    world = World(world_name)
 
-      for loc in all_locations:
-        for to in loc._to:
-          clean_to = to.split('-')[1]
-          sub_loc = t.get_location(clean_to)
-          print(f'Linking {loc.name} to {sub_loc.name}')
-
-          loc.add_sub_location(sub_loc)
+    for i in LocationType.list():
+      world.loc_categories[i] = []
 
     def wrapper(data: dict[str, dict]):
       locations = []
+
       for key, value in data.items():
-        if any(key.startswith(t) for t in self._types):
+        if key.count('-') != 1:
+          continue
 
-          if (day := value.get('day', None)) is None:
-            raise ValueError(f"Missing day background for {key}")
+        location_type, location_name = key.split('-')
 
-          day = value['day']
-          afternoon = value.get('afternoon', day)
-          night = value.get('night', day)
+        if location_type not in LocationType.list():
+          raise ValueError(f"Unknown location type: {location_type}")
 
-          type, name = key.split('-')
-          location = self._get_class(type)(name, day, afternoon, night)
+        day_bg = value.get('day', None)
 
-          loc_categories[location.type.value].append(location)
+        if day_bg is None:
+          raise ValueError(f"Missing day background for {key}")
 
-          if (to := value.get('to', None)) is not None:
-            location._to = to
+        afternoon_bg = value.get('afternoon', day_bg)
 
-          more = wrapper(value)
+        night_bg = value.get('night', day_bg)
 
-          if more is not None:
-            location.add_sub_locations(more)
+        location_cls = self._get_class(location_type)
 
-            locations.append(location)
+        location: BasicLocation = location_cls(location_name, day_bg, afternoon_bg, night_bg)
 
-        continue
+        world.loc_categories[location.type.value].append(location)
+
+        if (referencial_links := value.get('to', None)) is not None:
+          location._referencial_link = referencial_links
+
+        sub_locations = wrapper(value)
+
+        if sub_locations is None:
+          continue
+
+        location.add_sub_locations(sub_locations)
+        locations.append(location)
 
       return locations
 
-    town = None
-    for key, value in data.items():
-      if key.startswith("T"):
-        town = Town(key.split('-')[1])
+    world.add_sub_locations(wrapper(data))
 
-      town.add_sub_locations(wrapper(value))
-      town.loc_categories = loc_categories
+    def link_references(location: BasicLocation):
+      if location._referencial_link is not None:
+        for referencial_link in location._referencial_link:
+          if referencial_link.count('-') != 1:
+            raise ValueError(f"Invalid referencial link: {referencial_link}")
 
-      link_references(town)
+          location_type, location_name = referencial_link.split('-')
 
-      return town
+          if location_type not in LocationType.list():
+            raise ValueError(f"Unknown location type: {location_type}")
+
+          referenced_location = world.get_location(location_name, location_type)
+
+          if referenced_location is None:
+            raise ValueError(f"Referenced location not found: {referencial_link}")
+
+          location.add_referenced_sub_location(referenced_location)
+
+      for sub_location in location.sub_locations:
+        link_references(sub_location)
+
+    link_references(world)
+
+    return world
 
 
 if __name__ == "__main__":
-  parser = WorldParser("schema.json")
-  world = parser.unpack()
+  parser = WorldParser()
+  world = parser.unpack('nexis.json')
 
-  # for location in world:
-  # print(location.name)
+  def wrap(cls: BasicLocation):
+    for location in cls.sub_locations:
+      if len(location.sub_locations) > 0:
+        wrap(location)
+
+      print(location.name)
+
+  wrap(world)
+
+  print(world.get_location('School', 'B').sub_locations_here())
   # print(world.loc_categories)
+  # school = world.get_location('School')
+  # print(school.sub_locations_here())
   # print(parser.get_locations(world))
-  school = world.get_location('School')
-  print(school.sub_locations_here())

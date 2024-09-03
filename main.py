@@ -41,12 +41,12 @@ signal.signal(signal.SIGINT, signal_handler)
 
 def main():
   global game_time
-  town = WorldParser("schema.json").unpack()
+  town = WorldParser().unpack("nexis.json")
   # thread.start()
 
-  current_location = town.get_location('Club Room')
-  town.get_location("Closet").add_character("Monika")
-  town.get_location("Woman Bathroom").add_character("Yuri")
+  current_location = town.get_location('Club Room', 'R')
+  town.get_location("Closet", 'R').add_character("Monika")
+  town.get_location("Woman Bathroom", 'R').add_character("Yuri")
   current_location.add_character("Sayori")
   current_location.add_character("Natsuki")
 
@@ -60,11 +60,11 @@ def main():
 
     print(f'\nHora: {time}\nEstas en {current_location.name}\nFondo: {current_location.get_background(game_time)}\n{someone}')
     print('Puedes ir a: ')
-    for i, sub_location in enumerate(current_location.sub_locations):
+    for i, sub_location in enumerate(current_location.all_sub_locations()):
       print(f'{i + 1}. {sub_location.name}')
 
     if current_location.parent_location is not None:
-      print('0. Regresar')
+      print(f'0. {current_location.parent_location.name}')
 
     to = input('>')
 
@@ -75,7 +75,7 @@ def main():
         current_location = current_location.parent_location
         continue
 
-      current_location = current_location.sub_locations[to]
+      current_location = current_location.all_sub_locations()[to]
     except:
       continue
 

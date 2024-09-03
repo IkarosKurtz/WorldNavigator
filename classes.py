@@ -5,19 +5,16 @@ import time
 from typing import Generator, Optional
 
 
-class ExtendedEnum(Enum):
-
-  @classmethod
-  def list(cls) -> list[str]:
-    return [e.value for e in cls]
-
-
-class LocationType(ExtendedEnum):
+class LocationType(Enum):
   Room = 'R'
   Corridor = 'C'
   Building = 'B'
   Street = 'S'
-  Town = 'T'
+  World = 'W'
+
+  @classmethod
+  def list(cls) -> list[str]:
+    return [e.value for e in cls if e != LocationType.World]
 
 
 class LocationBackground:
@@ -54,7 +51,10 @@ class BasicLocation(LocationBackground):
     self.parent_location: Optional['BasicLocation'] = None
     self.is_indoor: bool = False
     self.type: Optional[LocationType] = None
-    self._to: Optional[str] = None
+    self._referencial_link: Optional[str] = None
+
+    self.referenced_locations: list['BasicLocation'] = []
+    self.sub_locations: list['BasicLocation'] = []
 
   def add_character(self, character: str) -> None:
     self.characters.append(character)
@@ -67,6 +67,9 @@ class BasicLocation(LocationBackground):
 
     sub_location.parent_location = self
 
+  def add_referenced_sub_location(self, sub_location: 'BasicLocation') -> None:
+    self.referenced_locations.append(sub_location)
+
   def add_sub_locations(self, sub_locations: list['BasicLocation']) -> None:
     self.sub_locations.extend(sub_locations)
 
@@ -75,11 +78,14 @@ class BasicLocation(LocationBackground):
 
   def sub_locations_here(self) -> str:
     return [
-      sb.name for sb in self.sub_locations
+      sb.name for sb in self.referenced_locations + self.sub_locations
     ]
 
   def who_is_here(self) -> str:
     return ', '.join(self.characters)
+
+  def all_sub_locations(self) -> list['BasicLocation']:
+    return self.referenced_locations + self.sub_locations
 
   def __str__(self) -> str:
     sub_locations = '\n\t'.join(str(sl) for sl in self.sub_locations)
@@ -146,10 +152,10 @@ class Corridor(BasicLocation):
     self.type = LocationType.Corridor
 
 
-class Town(BasicLocation):
+class World(BasicLocation):
   def __init__(self, name: str):
     super().__init__(name, ' ')
-    self.type = LocationType.Town
+    self.type = LocationType.World
     self.loc_categories = {}
 
   def _rec(self, loc: BasicLocation, character: str):
@@ -171,20 +177,15 @@ class Town(BasicLocation):
   def __repr__(self) -> str:
     return super().__str__()
 
-  def get_location(self, location_name: str, location: BasicLocation | None = None) -> BasicLocation:
-    if location is None:
-      location = self
+  def get_location(self, location_name: str, location_type: str, location: BasicLocation | None = None) -> BasicLocation | None:
+    search_list = self.loc_categories.get(location_type, [])
 
-    if location.name == location_name:
-      return location
+    if len(search_list) == 0:
+      return None
 
-    a = None
-
-    for sub_location in location.sub_locations:
-      a = self.get_location(location_name, sub_location)
-
-      if a is not None:
-        return a
+    for location in search_list:
+      if location.name == location_name:
+        return location
 
   def get_characters(self, location: BasicLocation | None = None) -> list[str]:
     characters = {}

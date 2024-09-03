@@ -1,0 +1,51 @@
+{
+  "B-School": {
+    "to": [
+      "B-Park",
+      "S-West Street"
+    ],
+    "day": "bg school",
+    "R-Main Entrance": {
+      "day": "bg main_entrance",
+      "C-Left Corridor": {
+        "day": "bg left_corridor",
+        "R-Club Room": {
+          "day": "bg club_day",
+          "afternoon": "bg club_afternoon"
+        },
+        "R-Classroom 2": {
+          "day": "bg class_room_day",
+          "afternoon": "bg class_room_afternoon",
+          "R-Closet": {
+            "day": "bg closet"
+          }
+        },
+        "R-Classroom 3": {
+          "day": "bg class_room_day",
+          "afternoon": "bg class_room_afternoon"
+        }
+      },
+      "C-Right Corridor": {
+        "day": "bg right_corridor",
+        "R-Man Bathroom": {
+          "day": "bg man_bathroom"
+        },
+        "R-Woman Bathroom": {
+          "day": "bg woman_bathroom"
+        }
+      }
+    }
+  },
+  "S-West Street": {
+    "to": [
+      "B-School"
+    ],
+    "day": "bg w_street"
+  },
+  "B-Park": {
+    "to": [
+      "S-West Street"
+    ],
+    "day": "bg park"
+  }
+}
