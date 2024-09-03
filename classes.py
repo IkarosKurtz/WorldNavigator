@@ -1,24 +1,9 @@
-from enum import Enum
-import math
-import random
-import time
-from typing import Generator, Optional
-
-
-class LocationType(Enum):
-  Room = 'R'
-  Corridor = 'C'
-  Building = 'B'
-  Street = 'S'
-  World = 'W'
-
-  @classmethod
-  def list(cls) -> list[str]:
-    return [e.value for e in cls if e != LocationType.World]
+from enums import LocationType
+from typing import Optional
 
 
 class LocationBackground:
-  def __init__(self, day: str, afternoon: str = None, night: str = None):
+  def __init__(self, day: str, afternoon: Optional[str] = None, night: Optional[str] = None):
     self.day: str = day
     self.afternoon: str = afternoon if afternoon is not None else day
     self.night: str = night if night is not None else day
@@ -41,20 +26,19 @@ class BasicLocation(LocationBackground):
   def __init__(self,
               name: str,
               background_day: str,
-              background_afternoon: str = None,
-              background_night: str = None):
+              background_afternoon: Optional[str] = None,
+              background_night: Optional[str] = None):
     super().__init__(background_day, background_afternoon, background_night)
-
     self.name = name
-    self.characters: list[str] = []
-    self.sub_locations: list['BasicLocation'] = []
-    self.parent_location: Optional['BasicLocation'] = None
     self.is_indoor: bool = False
     self.type: Optional[LocationType] = None
+
+    self.parent_location: Optional['BasicLocation'] = None
     self._referencial_link: Optional[str] = None
 
-    self.referenced_locations: list['BasicLocation'] = []
+    self.characters: list[str] = []
     self.sub_locations: list['BasicLocation'] = []
+    self.referenced_locations: list['BasicLocation'] = []
 
   def add_character(self, character: str) -> None:
     self.characters.append(character)
@@ -115,8 +99,8 @@ class Room(BasicLocation):
   def __init__(self,
               name: str,
               background_day: str,
-              background_afternoon: str = None,
-              background_night: str = None):
+              background_afternoon: Optional[str] = None,
+              background_night: Optional[str] = None):
     super().__init__(name, background_day, background_afternoon, background_night)
     self.is_indoor = True
     self.type = LocationType.Room
@@ -126,8 +110,8 @@ class Building(BasicLocation):
   def __init__(self,
               name: str,
               background_day: str,
-              background_afternoon: str = None,
-              background_night: str = None):
+              background_afternoon: Optional[str] = None,
+              background_night: Optional[str] = None):
     super().__init__(name, background_day, background_afternoon, background_night)
     self.type = LocationType.Building
 
@@ -136,8 +120,8 @@ class Street(BasicLocation):
   def __init__(self,
               name: str,
               background_day: str,
-              background_afternoon: str = None,
-              background_night: str = None):
+              background_afternoon: Optional[str] = None,
+              background_night: Optional[str] = None):
     super().__init__(name, background_day, background_afternoon, background_night)
     self.type = LocationType.Street
 
@@ -146,8 +130,8 @@ class Corridor(BasicLocation):
   def __init__(self,
               name: str,
               background_day: str,
-              background_afternoon: str = None,
-              background_night: str = None):
+              background_afternoon: Optional[str] = None,
+              background_night: Optional[str] = None):
     super().__init__(name, background_day, background_afternoon, background_night)
     self.is_indoor = True
     self.type = LocationType.Corridor
@@ -179,7 +163,7 @@ class World(BasicLocation):
   def __repr__(self) -> str:
     return super().__str__()
 
-  def get_location(self, location_name: str, location_type: str, location: BasicLocation | None = None) -> BasicLocation | None:
+  def get_location(self, location_name: str, location_type: str, location: Optional[BasicLocation] = None) -> Optional[BasicLocation]:
     search_list = self.loc_categories.get(location_type, [])
 
     if len(search_list) == 0:
@@ -194,7 +178,7 @@ class World(BasicLocation):
       if location.name == location_name:
         return location
 
-  def get_characters(self, location: BasicLocation | None = None) -> list[str]:
+  def get_characters(self, location: Optional[BasicLocation] = None) -> list[str]:
     characters = {}
 
     if location is None:
@@ -210,79 +194,3 @@ class World(BasicLocation):
 
   def where_is(self, character: str) -> str:
     return self._rec(self, character)
-
-
-class WorldWeather:
-  def __init__(self) -> None:
-    self.weather = {
-        'Sunny': {'temperature': (25, 35), 'humidity': (10, 30), 'wind': (0, 10), 'clouds': (0, 20)},
-        'Cloudy': {'temperature': (15, 25), 'humidity': (40, 60), 'wind': (5, 15), 'clouds': (60, 100)},
-        'Rainy': {'temperature': (10, 20), 'humidity': (70, 90), 'wind': (10, 20), 'clouds': (80, 100)},
-        'Stormy': {'temperature': (8, 18), 'humidity': (80, 100), 'wind': (20, 40), 'clouds': (90, 100)},
-        'Snowy': {'temperature': (-5, 5), 'humidity': (60, 80), 'wind': (5, 15), 'clouds': (70, 100)}
-    }
-
-  def _interpolate(self, initial_value: float, final_value: float, step: int, max_steps: int) -> float:
-    return initial_value + (final_value - initial_value) * (step / max_steps)
-
-  def _generate_weather(self, weather) -> None:
-    conditions = self.weather[weather]
-    temperature = random.uniform(*conditions['temperature'])
-    humidity = random.uniform(*conditions['humidity'])
-    wind = random.uniform(*conditions['wind'])
-    clouds = random.uniform(*conditions['clouds'])
-    return {'weather': weather, 'temperature': temperature, 'humidity': humidity, 'wind': wind, 'clouds': clouds}
-
-  def transition_weather(self, initial_conditions: dict, final_conditions: dict, duration_minutes: str):
-    for hour in range(duration_minutes):
-      temperature = self._interpolate(
-          initial_conditions['temperature'], final_conditions['temperature'], hour, duration_minutes)
-      humidity = self._interpolate(
-          initial_conditions['humidity'], final_conditions['humidity'], hour, duration_minutes)
-      wind = self._interpolate(
-          initial_conditions['wind'], final_conditions['wind'], hour, duration_minutes)
-      clouds = self._interpolate(
-          initial_conditions['clouds'], final_conditions['clouds'], hour, duration_minutes)
-      print(
-          f"Hour {hour*2}: Weather: {final_conditions['weather']}, Temperature: {temperature:.2f}°C, Humidity: {humidity:.2f}%, Wind: {wind:.2f} km/h, Clouds: {clouds:.2f}%")
-
-      yield {
-          'weather': final_conditions['weather'],
-          'temperature': temperature,
-          'humidity': humidity,
-          'wind': wind,
-          'clouds': clouds
-      }
-
-  def simulate_weather_with_transitions(self, total_duration_minutes: int, last_weather: str = 'Sunny') -> Generator[str, None, None]:
-    current_conditions = self._generate_weather(last_weather)
-    remaining_minutes = total_duration_minutes
-
-    while remaining_minutes > 0:
-      # Define the duration of the next transition
-      transition_duration = random.randint(30, 60)  # Example transition from 1 to 4 hours (30 to 240 minutes)
-
-      # Choose the next weather
-      new_weather = random.choice(list(self.weather.keys()))
-      final_conditions = self._generate_weather(new_weather)
-
-      # Perform the transition
-      transition_gen = self.transition_weather(current_conditions, final_conditions, transition_duration)
-
-      for transition in transition_gen:
-        yield transition
-
-      # Update for the next transition
-      current_conditions = final_conditions
-      remaining_minutes -= transition_duration
-
-
-if __name__ == "__main__":
-  world_weather = WorldWeather()
-  gen = world_weather.simulate_weather_with_transitions(720)
-
-  print(next(gen))
-  print(next(gen))
-
-  for _ in range(1000):
-    print(next(gen))
