@@ -146,20 +146,20 @@ label navigation_label(my_label):
 
 Now it's time to see how it looks in action. First, take a look at the dynamic weather in the demo game.
 
-<video src="./static/dynamic_weather.mp4" controls></video>
+
+https://github.com/user-attachments/assets/6554ab27-c72c-4eb7-b510-ff3584046105
 
 As you can see, the weather effects are dynamic, and the backgrounds also change according to the time. Unfortunately, they cannot change based on the weather (yet).
 
-<video src="./static/dynamic_background.mp4" controls></video>
+https://github.com/user-attachments/assets/122a332c-94ed-440e-93e5-97bf1bc5e893
 
 When the weather is `Stormy`, there is a thunder effect with a `12.5%` chance of being triggered (this can be changed). In theory, it's set to mimic real-life thunderstorms, but it still needs some improvements.
 
-<video src="./static/thunders.mp4" controls></video>
+https://github.com/user-attachments/assets/fcd52d9e-c887-4f02-aeb5-4297a52fcdd2
 
 As you already know, the rain and snow effects are triggered by the weather. However, if you are in a location marked as `is_indoor` (such as a Room or Corridor), all weather effects will be disabled until you leave the location. The sound effects follow the same logic.
 
-
-<video src="./static/indoors.mp4" controls ></video>
+https://github.com/user-attachments/assets/4c9b91b6-122e-4742-8092-3a57e3900061
 
 <h3 id="customizable-variables">Customizable variables 🎨</h3>
 
