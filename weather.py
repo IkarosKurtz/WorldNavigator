@@ -19,6 +19,14 @@ class WorldWeather:
         'Snowy': {'temperature': (-5, 5), 'humidity': (60, 80), 'wind': (5, 15), 'clouds': (70, 100)}
     }
 
+    self.posible_transitions = {
+        'Sunny': ['Cloudy', 'Rainy'],
+        'Cloudy': ['Sunny', 'Rainy', 'Stormy', 'Snowy'],
+        'Rainy': ['Cloudy', 'Stormy'],
+        'Stormy': ['Rainy', 'Cloudy'],
+        'Snowy': ['Cloudy']
+      }
+
   def _interpolate(self, initial_value: float, final_value: float, step: int, max_steps: int) -> float:
     return initial_value + (final_value - initial_value) * (step / max_steps)
 
@@ -41,8 +49,6 @@ class WorldWeather:
           initial_conditions['wind'], final_conditions['wind'], hour, duration_period)
       clouds = self._interpolate(
           initial_conditions['clouds'], final_conditions['clouds'], hour, duration_period)
-      print(
-          f"Hour {hour + 1}: Weather: {final_conditions['weather']}, Temperature: {temperature:.2f}°C, Humidity: {humidity:.2f}%, Wind: {wind:.2f} km/h, Clouds: {clouds:.2f}%")
 
       steps.append({
         'weather': final_conditions['weather'],
@@ -59,6 +65,7 @@ class WorldWeather:
   def simulate_weather_with_transitions(self, total_duration: int, last_weather: str = 'Sunny') -> Generator[str, None, None]:
     current_conditions = self._generate_weather(last_weather)
     remaining_period = total_duration
+    current_weather = last_weather
 
     timestamps = []
 
@@ -70,7 +77,7 @@ class WorldWeather:
         transition_duration = remaining_period
 
       # Choose the next weather
-      new_weather = random.choice(list(self.weather.keys()))
+      new_weather = random.choice(self.posible_transitions[current_weather])
       final_conditions = self._generate_weather(new_weather)
 
       # Perform the transition
@@ -81,6 +88,7 @@ class WorldWeather:
       # Update for the next transition
       current_conditions = final_conditions
       remaining_period -= transition_duration
+      current_weather = new_weather
 
     return timestamps
 
