@@ -8,13 +8,16 @@
   - [WorldParser 🛠️](#worldparser)
   - [WorldWeather 🌦️](#worldweather)
   - [World 🌍](#world)
+  - [Basic Location 🏠](#basic-location)
 - [How to create a World 🛠️](#how-to-create-a-world)
+- [Python Example 🐍](#python-example)
+
 
 <h2 id="what-is-it">What is it?? 🤔</h2>
 
-This project has three main classes that you will need if you want to create a World. WorldNavigator is a bunch of classes with the goal of creating a World where you can navigate and see the simulated time and weather.
+`WorldNavigator` is a collection of classes designed to create a world where you can navigate and experience simulated weather. This `WorldNavigator` provides a list of locations relative to your current position, it's not like a map you can click on to instantly move to a place. It's more like walking through the world. However, there are some disadvantages: if the world you create is very large, users may feel overwhelmed trying to move from one place to another. This makes it more suitable for smaller worlds or worlds without much detail. By 'without much detail,' I mean the world doesn’t need to follow strict logic, like connecting a beach to a library, which might not make much sense in a real-world simulation. But if it works for your project, then go ahead.
 
-In escence that is what WorldNavigator is, but now I will explain **Why I created this**.
+**If you want to implement it in a Ren'Py game, where it was originally intended to be used, read [Renpy Implementation 👥](./RENPY.md).**
 
 <h2 id="why-was-created">Why was created?? ❗</h2>
 
@@ -81,7 +84,7 @@ My Time: 13:00
 """
 ```
 
-The data in each step is useless, for now. So you don't need to worry about it.
+The data in each step is useless, for now. So you don't need to worry about it
 
 <h3 id="world">World 🌍</h3>
 
@@ -115,6 +118,34 @@ print(world.get_characters())
 print(world.where_is('Mike'))
 # Output: Mike is in Right Corridor
 ```
+
+<h3 id="basic-location">Basic Location 🏠</h3>
+
+Every location has a series of methods, the most important is `add_character`, `remove_character`, and `sub_locations_here`. The last method is used to get the names of the sub locations of the current location, for example:
+
+```python
+from enums import LocationType
+from classes import World
+
+world: World = WorldParser().unpack('my_world.json')
+
+school = world.get_location_by_name('School')
+
+school.add_character('Mike')
+
+print(school.who_is_here())
+# Output: Mike
+
+school.remove_character('Mike')
+
+print(school.who_is_here())
+# Output: 
+
+print(school.sub_locations_here())
+# Output: "Left Corridor, Right Corridor"
+```
+
+Also each location has an important property called `is_indoor` this is used to know if the location is inside or outside of the building, this is more important if you want to use the **[Renpy Implementation 👥](./RENPY.md).**
 
 ---
 
@@ -165,3 +196,68 @@ Here a example of a JSON file called `my world.json`:
   }
 }
 ```
+
+---
+
+<h2 id="python-example">Python Example 🐍</h2>
+
+Download the repository with:
+
+```bash
+git clone https://github.com/ikaroskurtz/WorldNavigator.git
+```
+
+Then you can run the `main.py` file to see the example, this example is a simple one, just run:
+
+```bash
+python main.py
+```
+
+You will see a output like this:
+
+```bash
+Time: 12:00
+Weather: Snowy
+Current location: Club Room      
+Background: bg club_day
+Characters here: Sayori, Natsuki
+Locations in this location: 
+1. Left Corridor
+> |
+```
+
+Here you can see the time, weather, current location, background and characters in the current location. Then you can select a location to go to, from the list of locations in the current location. If I select `0` I will go to the Left Corridor.
+
+```bash
+Time: 12:02
+Weather: Snowy
+Current: location Left Corridor
+Background: bg left_corridor  
+No Characters Here
+Locations in this location:   
+1. Club Room
+2. Classroom 2
+3. Classroom 3
+0. Main Entrance
+> |
+```
+
+Here you can how the time is progressing, and now we have more locations in the current location. If I go to `2` I will go to the Classroom 2.
+
+```bash
+Time: 12:04
+Weather: Snowy
+Current location: Classroom 2
+Background: bg class_room_day
+No Characters Here
+Locations in this location:
+1. Closet
+0. Left Corridor
+> |
+```
+
+And basically, it's the same as before, but now with more locations available at the current location.
+
+The logic behind this menu and time progression isn't implemented, as you might need a different approach. World Navigator helps you create and manage your own world and weather, but you can use the provided example as a foundation to build your own system.
+
+It doesn't require third-party libraries, so you can easily integrate it into any project.
