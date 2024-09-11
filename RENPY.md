@@ -176,7 +176,7 @@ define weather_period_transition = (2, 4) # Hours between weather transitions
 define thunder_chance = 0.125 # Chance of thunder it goes from 0.0 to 1.0
 ```
 
-The most important variable is `world`, this is the `World` that you will be using. Just change the file name to the one you want to use (see the [How to create a World 🛠️](./README.md#how-to-create-a-world) section).
+The most important variable is `world`, this is the `World` that you will be using. Just change the file name to the one you want to use (see the [How to create a World 🛠️](./README.md#how-to-create-a-world) section). Remember to create your **JSON** in the `game` folder.
 
 You can change these values to your liking. For example, if you want to change the weather period transition to `3` hours, you can do so by changing the `weather_period_transition` variable, like this:
 
