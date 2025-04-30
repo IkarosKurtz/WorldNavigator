@@ -1,0 +1,80 @@
+{
+  "name": "Nexis",
+  "locations": [
+    {
+      "name": "School",
+      "is_indoor": false,
+      "backgrounds": { "day": "bg school" },
+      "connected_locations": ["Park", "West Street"]
+    },
+    {
+      "name": "Main Entrance",
+      "is_indoor": true,
+      "backgrounds": { "day": "bg main_entrance" },
+      "connected_locations": ["Left Corridor", "Right Corridor"]
+    },
+    {
+      "name": "Left Corridor",
+      "is_indoor": true,
+      "backgrounds": { "day": "bg left_corridor" },
+      "connected_locations": ["Club Room", "Classroom 2", "Classroom 3"]
+    },
+    {
+      "name": "Club Room",
+      "is_indoor": true,
+      "backgrounds": { "day": "bg club_day", "afternoon": "bg club_afternoon" },
+      "connected_locations": []
+    },
+    {
+      "name": "Classroom 2",
+      "is_indoor": true,
+      "backgrounds": { "day": "bg class_room_day", "afternoon": "bg class_room_afternoon" },
+      "connected_locations": ["Closet"]
+    },
+    {
+      "name": "Closet",
+      "is_indoor": true,
+      "backgrounds": { "day": "bg closet" },
+      "connected_locations": []
+    },
+    {
+      "name": "Classroom 3",
+      "is_indoor": true,
+      "backgrounds": { "day": "bg class_room_day", "afternoon": "bg class_room_afternoon" },
+      "connected_locations": []
+    },
+    {
+      "name": "Right Corridor",
+      "is_indoor": true,
+      "backgrounds": { "day": "bg right_corridor" },
+      "connected_locations": [
+        { "name": "Man Bathroom", "one_way": true },
+        { "name": "Woman Bathroom", "one_way": true }
+      ]
+    },
+    {
+      "name": "Man Bathroom",
+      "is_indoor": true,
+      "backgrounds": { "day": "bg man_bathroom" },
+      "connected_locations": []
+    },
+    {
+      "name": "Woman Bathroom",
+      "is_indoor": true,
+      "backgrounds": { "day": "bg woman_bathroom" },
+      "connected_locations": []
+    },
+    {
+      "name": "West Street",
+      "is_indoor": false,
+      "backgrounds": { "day": "bg w_street" },
+      "connected_locations": []
+    },
+    {
+      "name": "Park",
+      "is_indoor": false,
+      "backgrounds": { "day": "bg park" },
+      "connected_locations": ["West Street"]
+    }
+  ]
+}

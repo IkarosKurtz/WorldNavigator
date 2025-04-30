@@ -5,6 +5,12 @@
     "**/*.rpymc": true,
     "**/cache/": true
   },
+  "json.schemas": [
+    {
+      "fileMatch": ["**/*.world.json"],
+      "url": "./schema/world.schema.json"
+    }
+  ],
   "editor.tokenColorCustomizations": {
     "[*Light*]": {
       "textMateRules": [
@@ -46,10 +52,7 @@
         }
       },
       {
-        "scope": [
-          "renpy.meta.u",
-          "renpy.meta.a"
-        ],
+        "scope": ["renpy.meta.u", "renpy.meta.a"],
         "settings": {
           "fontStyle": "underline"
         }

@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "World Schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the world"
+    },
+    "locations": {
+      "type": "array",
+      "minItems": 1,
+      "description": "A list of locations in the world",
+      "items": {
+        "type": "object",
+        "properties": {
+          "is_indoor": {
+            "type": "boolean",
+            "description": "Whether the location is indoor or not"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the location"
+          },
+          "backgrounds": {
+            "type": "object",
+            "description": "The backgrounds of the location",
+            "properties": {
+              "day": { "type": "string" },
+              "afternoon": { "type": "string" },
+              "night": { "type": "string" }
+            },
+            "required": ["day"],
+            "additionalProperties": true
+          },
+          "connected_locations": {
+            "type": "array",
+            "description": "A list of connected locations",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "Name of a connected location"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "one_way": {
+                      "type": "boolean",
+                      "description": "Whether the connection is one-way"
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "objects": {
+            "type": "array",
+            "description": "Optional objects in the location",
+            "items": { "type": "string" },
+            "default": []
+          }
+        },
+        "required": ["name", "backgrounds", "connected_locations"]
+      }
+    }
+  },
+  "required": ["locations"]
+}

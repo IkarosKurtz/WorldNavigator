@@ -1,5 +1,4 @@
 import random
-from typing import Generator
 
 
 class WorldWeather:
@@ -62,7 +61,7 @@ class WorldWeather:
 
     return steps
 
-  def simulate_weather_with_transitions(self, total_duration: int, last_weather: str = 'Sunny') -> Generator[str, None, None]:
+  def simulate_weather_with_transitions(self, total_duration: int, last_weather: str = 'Sunny') -> list[dict[str, dict]]:
     current_conditions = self._generate_weather(last_weather)
     remaining_period = total_duration
     current_weather = last_weather
@@ -91,11 +90,3 @@ class WorldWeather:
       current_weather = new_weather
 
     return timestamps
-
-
-if __name__ == "__main__":
-  world_weather = WorldWeather()
-  steps = world_weather.simulate_weather_with_transitions(8)
-
-  print(steps)
-  print(len(steps))
