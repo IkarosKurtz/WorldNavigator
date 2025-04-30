@@ -5,13 +5,7 @@ description = "A tool to help you navigate through a simulated world."
 readme = "README.md"
 authors = [{ name = "IkarosKurtz", email = "ikaroskurtz@gmail.com" }]
 requires-python = ">=3.11"
-dependencies = [
-    "beautifulsoup4>=4.13.4",
-    "networkx>=3.4.2",
-    "pyvis>=0.3.2",
-    "rich>=14.0.0",
-    "streamlit>=1.44.1",
-]
+dependencies = ["rich>=14.0.0"]
 
 [build-system]
 requires = ["hatchling"]
