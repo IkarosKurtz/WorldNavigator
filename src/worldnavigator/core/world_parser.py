@@ -3,9 +3,21 @@ import json as JSON
 from worldnavigator.core.world import World
 from worldnavigator.locations.base_location import Location
 from worldnavigator.typed_dicts import LocationDict
+from worldnavigator.errors import NoLocationsFoundError
 
 
 class WorldParser:
+  """
+  A utility class for parsing different world data formats and creating World objects.
+
+  This class provides static methods to parse world data from different file formats
+  and create a fully connected World object with properly configured Location objects.
+
+  Currently supported formats:
+    - SceneGraph: A JSON format with locations and connections between them
+    - WorldNest: (In development) An alternative world description format
+  """
+
   @classmethod
   def scene_graph_parser(cls, json: dict | str):
     """
@@ -19,7 +31,7 @@ class WorldParser:
 
     locations: list[LocationDict] = json.get('locations', [])
     if len(locations) == 0:
-      raise ValueError('No locations found')
+      raise NoLocationsFoundError('No locations found in the provided world data')
 
     world_name = json.get('name', 'World')
 
@@ -54,7 +66,6 @@ class WorldParser:
         connected_location_object = world.get_location(target_name)
         location_object.connect_with(connected_location_object)
 
-        # Si no es one_way, conectamos de regreso
         if not one_way:
           connected_location_object.connect_with(location_object)
 

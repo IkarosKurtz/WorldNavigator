@@ -3,10 +3,13 @@ import random
 
 class WorldWeather:
   """
-  This class is used to manage and simulate the weather of the world.
-  For now it can simulate the weather like in real life, but it works well for now.
+  Manages and simulates weather conditions and transitions within the world.
 
-  This class will be improved in the future, but for now it's enough.
+  This class simulates weather patterns over time, including transitions between
+  different weather states like Sunny, Cloudy, Rainy, Stormy, and Snowy.
+
+  The simulation proceeds in steps, generating a list of weather conditions for each hour
+  over a specified total duration.
   """
 
   def __init__(self) -> None:
@@ -62,6 +65,19 @@ class WorldWeather:
     return steps
 
   def simulate_weather_with_transitions(self, total_duration: int, last_weather: str = 'Sunny') -> list[dict[str, dict]]:
+    """
+    Simulates weather over a specified duration with transitions between states.
+
+    Generates a list of hourly weather data points, simulating transitions
+    between different weather states randomly chosen from allowed possibilities.
+
+    :param total_duration: The total number of hours to simulate.
+    :param last_weather: The initial weather state to start the simulation from. Defaults to 'Sunny'.
+    :return: A list of dictionaries, where each dictionary represents the weather 
+             conditions for one hour. Each dictionary contains the 'weather' state 
+             (e.g., 'Cloudy') and a 'data' dictionary with 'temperature', 'humidity', 
+             'wind', and 'clouds' values for that hour.
+    """
     current_conditions = self._generate_weather(last_weather)
     remaining_period = total_duration
     current_weather = last_weather

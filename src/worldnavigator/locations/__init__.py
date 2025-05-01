@@ -1,4 +1,4 @@
-from .base_location import Location
+from worldnavigator.locations.base_location import Location
 
 __all__ = [
   "Location"

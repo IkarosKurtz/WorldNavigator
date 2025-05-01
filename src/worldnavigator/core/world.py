@@ -2,6 +2,17 @@ from worldnavigator.locations.base_location import Location
 
 
 class World:
+  """
+  Represents a world composed of connected locations.
+
+  The World class serves as a container and manager for Location objects. It provides
+  methods for adding, removing, and retrieving locations, as well as tracking characters
+  within the world's locations.
+
+  The world automatically monitors population changes by subscribing to the 'character_added'
+  and 'character_removed' events from its locations.
+  """
+
   def __init__(self, *, name: str):
     self._name = name
     self._locations: dict[str, Location] = {}
@@ -26,23 +37,19 @@ class World:
   def _character_added(self, name: str, location: str):
     self._population += 1
 
-    print(f'Character {name} added to {location}')
-
   def _character_removed(self, name: str, location: str):
     self._population -= 1
-
-    print(f'Character {name} removed from {location}')
 
   #################################################
   ################ Public Methods #################
   #################################################
 
   def population(self) -> str:
-    return f'{self._population} characters'
+    return f'"{self._population}" characters'
 
   def add_location(self, location: Location) -> None:
     if location.name in self._locations:
-      raise ValueError(f'Location {location.name} already exists')
+      raise ValueError(f'Location "{location.name}" already exists')
 
     location.on('character_added', self._character_added)
     location.on('character_removed', self._character_removed)
@@ -50,13 +57,13 @@ class World:
 
   def remove_location(self, location: Location) -> None:
     if location.name not in self._locations:
-      raise ValueError(f'Location {location.name} does not exist')
+      raise ValueError(f'Location "{location.name}" does not exist')
 
     self._locations.pop(location.name)
 
   def get_location(self, location_name: str) -> Location:
     if location_name not in self._locations:
-      raise ValueError(f'Location {location_name} does not exist')
+      raise ValueError(f'Location "{location_name}" does not exist')
 
     return self._locations[location_name]
 
@@ -70,6 +77,6 @@ class World:
 
     for location in self._locations.values():
       if character in location.characters:
-        return f'{character} is in {location.name}'
+        return f'"{character}" is in "{location.name}"'
 
-    return f'{character} is not found in the world.'
+    return f'"{character}" is not found in the world.'

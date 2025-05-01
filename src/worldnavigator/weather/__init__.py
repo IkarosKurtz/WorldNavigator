@@ -1,3 +1,3 @@
-from .weather import WorldWeather
+from worldnavigator.weather.weather import WorldWeather
 
 __all__ = ['WorldWeather']

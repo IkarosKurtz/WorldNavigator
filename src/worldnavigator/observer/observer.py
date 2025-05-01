@@ -5,9 +5,15 @@ from worldnavigator.observer.events import EventName, CharacterAddedEvent, Chara
 
 class Observer:
   """
-  An observer is an object that can trigger events and listen to them.
+  Implements the Observer pattern for event handling in the WorldNavigator system.
 
-  It is used to notify other objects about changes in the world.
+  The Observer class provides a foundation for objects that need to emit events and 
+  respond to events from other objects. It allows for type-safe event registration
+  and triggering with proper argument validation.
+
+  This class is used as a base for objects like Locations and World that need to
+  communicate state changes (such as characters being added or removed) to other
+  components of the system.
   """
 
   def __init__(self):
@@ -46,7 +52,7 @@ class Observer:
     :param dict data: The data to pass to the event.
     """
     if event_name not in self.events:
-      raise ValueError("Evento no registrado")
+      raise ValueError('Evento no registrado')
 
     func = self.events[event_name]
 

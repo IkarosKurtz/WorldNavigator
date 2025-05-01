@@ -49,16 +49,16 @@ def main():
   global game_time
   global current_weather
 
-  town = WorldParser.scene_graph_parser("./examples/worlds/nexis.world.json")
+  town = WorldParser.scene_graph_parser('./examples/worlds/nexis.world.json')
 
   update_weather()
   current_weather = weather_steps.pop(0)
 
   current_location = town.get_location('Club Room')
-  town.get_location("Closet").add_character("Monika")
-  town.get_location("Woman Bathroom").add_character("Yuri")
-  current_location.add_character("Sayori")
-  current_location.add_character("Natsuki")
+  town.get_location('Closet').add_character('Monika')
+  town.get_location('Woman Bathroom').add_character('Yuri')
+  current_location.add_character('Sayori')
+  current_location.add_character('Natsuki')
 
   while True:
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -88,5 +88,5 @@ def main():
       continue
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()
