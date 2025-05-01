@@ -4,10 +4,6 @@ class CharacterAlreadyPlacedError(Exception):
 
   This error is raised when attempting to add a character to a location
   where that character is already present.
-
-  :param str character_name: Name of the character being placed
-  :param str location_name: Name of the location where the character is already present
-  :param str message: Optional custom error message
   """
 
   def __init__(self, character_name: str, location_name: str, message: str = None):

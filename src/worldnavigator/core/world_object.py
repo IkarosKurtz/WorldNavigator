@@ -49,6 +49,6 @@ class WorldObject(Generic[V]):
 
   def interact(self, kind: V):
     if kind not in self._interactions_func:
-      raise ValueError(f'No se encuentra la interacción "{kind}"')
+      raise ValueError(f'Interaction "{kind}" not found')
 
     self._interactions_func[kind]()

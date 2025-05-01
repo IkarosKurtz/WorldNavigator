@@ -52,16 +52,16 @@ class Observer:
     :param dict data: The data to pass to the event.
     """
     if event_name not in self.events:
-      raise ValueError('Evento no registrado')
+      raise ValueError('Event not registered')
 
     func = self.events[event_name]
 
     types_hints = get_type_hints(func)
     for key, value in types_hints.items():
       if key not in data:
-        raise ValueError(f'Falta argumento "{key}" en evento "{event_name}"')
+        raise ValueError(f'Missing argument "{key}" in event "{event_name}"')
 
       if not isinstance(data[key], value):
-        raise ValueError(f'Argumento "{key}" en evento "{event_name}" debe ser de tipo "{value}"')
+        raise ValueError(f'Argument "{key}" in event "{event_name}" must be of type "{value}"')
 
     return func(**data)
