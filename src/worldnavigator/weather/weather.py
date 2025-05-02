@@ -42,7 +42,7 @@ class WorldWeather:
 
   def _transition_weather(self, initial_conditions: dict, final_conditions: dict, duration_period: str):
     steps = []
-    for hour in range(duration_period):
+    for hour in range(1, duration_period + 1):
       temperature = self._interpolate(
           initial_conditions['temperature'], final_conditions['temperature'], hour, duration_period)
       humidity = self._interpolate(
