@@ -1,3 +1,4 @@
+from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError
 from worldnavigator.locations.base_location import Location
 
 
@@ -49,21 +50,21 @@ class World:
 
   def add_location(self, location: Location) -> None:
     if location.name in self._locations:
-      raise ValueError(f'Location "{location.name}" already exists')
+      raise DuplicatedLocationError(f'Location "{location.name}" is already in the world.')
 
     location.on('character_added', self._character_added)
     location.on('character_removed', self._character_removed)
     self._locations[location.name] = location
 
-  def remove_location(self, location: Location) -> None:
-    if location.name not in self._locations:
-      raise ValueError(f'Location "{location.name}" does not exist')
+  def remove_location(self, location_name: str) -> Location:
+    if location_name not in self._locations:
+      raise LocationNotFoundError(location_name)
 
-    self._locations.pop(location.name)
+    return self._locations.pop(location_name)
 
   def get_location(self, location_name: str) -> Location:
     if location_name not in self._locations:
-      raise ValueError(f'Location "{location_name}" does not exist')
+      raise LocationNotFoundError(location_name)
 
     return self._locations[location_name]
 

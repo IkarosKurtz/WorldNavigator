@@ -1,4 +1,4 @@
-from worldnavigator.errors.character_already_placed import CharacterAlreadyPlacedError
+from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError
 from worldnavigator.errors.missing_day_bg import MissingDayBackgroundError
 from worldnavigator.observer import Observer
 from worldnavigator.typed_dicts import BackgroundsDict
@@ -132,7 +132,7 @@ class Location(Observer):
 
   def get_location(self, location_name: str) -> 'Location':
     if location_name not in self._connections:
-      raise ValueError(f'Location "{location_name}" does not exist')
+      raise LocationNotFoundError(location_name)
 
     return self._connections[location_name]
 
@@ -141,15 +141,15 @@ class Location(Observer):
 
   def connect_with(self, other_location: 'Location') -> None:
     if other_location.name in self.connections:
-      raise ValueError(f'Location "{other_location.name}" is already connected to "{self.name}"')
+      raise DuplicatedLocationError(f'Location "{other_location.name}" is already connected to "{self.name}"')
 
     self._connections[other_location.name] = other_location
 
-  def disconnect_from(self, other_location: 'Location') -> None:
-    if other_location.name not in self.connections:
-      raise ValueError(f'Location "{other_location.name}" is not connected to "{self.name}"')
+  def disconnect_from(self, location_name: str) -> None:
+    if location_name not in self.connections:
+      raise LocationNotFoundError(location_name)
 
-    self.connections.pop(other_location.name)
+    self.connections.pop(location_name)
 
   def add_object(self, obj: str):
     self._objects.append(obj)
@@ -159,14 +159,14 @@ class Location(Observer):
 
   def add_character(self, character: str) -> None:
     if character in self._characters:
-      raise CharacterAlreadyPlacedError(character, self.name)
+      raise CharacterAlreadyPresentError(f'Character "{character}" is already in "{self.name}"')
 
     self.trigger('character_added', {'name': character, 'location': self.name})
     self._characters.append(character)
 
   def remove_character(self, character: str) -> None:
     if character not in self._characters:
-      raise ValueError(f'Character "{character}" is not in "{self.name}"')
+      raise CharacterNotFoundError(f'Character "{character}" is not in "{self.name}"')
 
     self.trigger('character_removed', {'name': character, 'location': self.name})
     self._characters.remove(character)
