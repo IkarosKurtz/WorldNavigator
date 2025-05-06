@@ -1,5 +1,9 @@
 from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError
-from worldnavigator.locations.base_location import Location
+from typing import TYPE_CHECKING, List, Dict
+
+if TYPE_CHECKING:
+  # Only import Location for type checking to avoid circular imports
+  from worldnavigator.locations.base_location import Location
 
 
 class World:
@@ -16,7 +20,7 @@ class World:
 
   def __init__(self, *, name: str):
     self._name = name
-    self._locations: dict[str, Location] = {}
+    self._locations: Dict[str, 'Location'] = {}
     self._population = 0
 
   #################################################
@@ -28,7 +32,7 @@ class World:
     return self._name
 
   @property
-  def locations(self) -> list[Location]:
+  def locations(self) -> List['Location']:
     return list(self._locations.values())
 
   #################################################
@@ -48,7 +52,7 @@ class World:
   def population(self) -> str:
     return f'"{self._population}" characters'
 
-  def add_location(self, location: Location) -> None:
+  def add_location(self, location: 'Location') -> None:
     if location.name in self._locations:
       raise DuplicatedLocationError(f'Location "{location.name}" is already in the world.')
 
@@ -56,13 +60,13 @@ class World:
     location.on('character_removed', self._character_removed)
     self._locations[location.name] = location
 
-  def remove_location(self, location_name: str) -> Location:
+  def remove_location(self, location_name: str) -> 'Location':
     if location_name not in self._locations:
       raise LocationNotFoundError(location_name)
 
     return self._locations.pop(location_name)
 
-  def get_location(self, location_name: str) -> Location:
+  def get_location(self, location_name: str) -> 'Location':
     if location_name not in self._locations:
       raise LocationNotFoundError(location_name)
 

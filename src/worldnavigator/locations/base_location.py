@@ -1,8 +1,11 @@
-from worldnavigator.core.world_object import WorldObject
+from typing import TYPE_CHECKING, Dict, List, Tuple, Optional
 from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError
 from worldnavigator.errors.missing_day_bg import MissingDayBackgroundError
 from worldnavigator.observer import Observer
 from worldnavigator.types.typed_dicts import BackgroundsDict
+
+if TYPE_CHECKING:
+  from worldnavigator.core.world_object import WorldObject
 
 
 class LocationBackground:
@@ -50,10 +53,10 @@ class LocationBackground:
   ################ Public Methods #################
   #################################################
 
-  def get_backgrounds(self) -> str:
+  def get_backgrounds(self) -> Tuple[str, str, str]:
     return (self.day, self.afternoon, self.night)
 
-  def retrieve_scene_background(self, time: tuple[int, int]) -> str:
+  def retrieve_scene_background(self, time: Tuple[int, int]) -> str:
     hour, minute = time
 
     if 7 <= hour < 17:
@@ -78,7 +81,7 @@ class Location(Observer):
                *,
                name: str,
                backgrounds: BackgroundsDict,
-               objects: dict[str, WorldObject] = None,
+               objects: Optional[Dict[str, 'WorldObject']] = None,
                is_indoor: bool = False):
     super().__init__()
     self._name = name
@@ -87,11 +90,11 @@ class Location(Observer):
       raise MissingDayBackgroundError(self._name)
 
     self._backgrounds = LocationBackground(backgrounds)
-    self._objects: dict[str, WorldObject] = objects if objects is not None else {}
+    self._objects: Dict[str, 'WorldObject'] = objects if objects is not None else {}
     self._is_indoor = is_indoor
 
-    self._connections: dict[str, 'Location'] = {}
-    self._characters: list[str] = []
+    self._connections: Dict[str, 'Location'] = {}
+    self._characters: List[str] = []
 
   def __str__(self) -> str:
     return f'Location("{self.name}", backgrounds="{self.backgrounds}", objects="{self.objects}", is_indoor="{self.is_indoor}")'
@@ -112,7 +115,7 @@ class Location(Observer):
     return self._backgrounds
 
   @property
-  def objects(self) -> dict[str, WorldObject]:
+  def objects(self) -> Dict[str, 'WorldObject']:
     return self._objects
 
   @property
@@ -120,11 +123,11 @@ class Location(Observer):
     return self._is_indoor
 
   @property
-  def connections(self) -> dict[str, 'Location']:
+  def connections(self) -> Dict[str, 'Location']:
     return self._connections
 
   @property
-  def characters(self) -> list[str]:
+  def characters(self) -> List[str]:
     return self._characters
 
   #################################################
@@ -137,7 +140,7 @@ class Location(Observer):
 
     return self._connections[location_name]
 
-  def get_locations(self) -> list['Location']:
+  def get_locations(self) -> List['Location']:
     return list(self._connections.values())
 
   def connect_with(self, other_location: 'Location') -> None:
@@ -152,13 +155,13 @@ class Location(Observer):
 
     self.connections.pop(location_name)
 
-  def add_object(self, obj: WorldObject):
+  def add_object(self, obj: 'WorldObject'):
     self._objects[obj.name] = obj
 
-  def remove_object(self, obj_name: str) -> WorldObject:
+  def remove_object(self, obj_name: str) -> 'WorldObject':
     return self._objects.pop(obj_name)
 
-  def get_object(self, obj_name: str) -> WorldObject:
+  def get_object(self, obj_name: str) -> 'WorldObject':
     return self._objects[obj_name]
 
   def add_character(self, character: str) -> None:

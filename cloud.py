@@ -1,5 +1,6 @@
 
 from logging import DEBUG, FileHandler, getLogger
+import os
 import random
 import time
 from rich.console import Console
@@ -60,6 +61,10 @@ class Cloud:
 
 
 logger = getLogger()
+
+if not os.path.exists('./tmp'):
+  os.makedirs('./tmp', exist_ok=True)
+
 logger.addHandler(FileHandler('./tmp/w.log'))
 logger.setLevel(DEBUG)
 clouds: list[list[Cloud]] = []

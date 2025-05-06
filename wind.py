@@ -14,10 +14,10 @@ import string
 console = Console()
 
 MAX_WIND = 20
-GRID_SIZE = 8
+GRID_SIZE = 15
 MIN_WIND = 3
 GROW_FACTOR = 3
-TICKS_PER_STEP = 4
+TICKS_PER_STEP = 10
 PROP_DECAY = 2
 ALPHABET = string.ascii_uppercase[:GRID_SIZE]
 
@@ -36,12 +36,12 @@ class Node:
     self.wind = min(max_wind, max(1, self.wind + increment // GROW_FACTOR))
 
   def remove(self, increment: int):
-    self.wind = max(MIN_WIND, max(1, self.wind - increment // GROW_FACTOR))
+    self.wind = max(MIN_WIND, self.wind - 1)
 
   def __hash__(self):
     return hash(self.id)
 
-  def __eq__(self, other):
+  def __eq__(self, other: 'Node'):
     return self.id == other.id
 
 
@@ -73,26 +73,23 @@ def propagate(center: Node, nodes: list[list[Node]], increment: int):
   queue = deque()
   visited = set()
 
-  # iniciamos en el foco
   queue.append((center.x, center.y, increment))
   visited.add((center.x, center.y))
 
   while queue:
     x, y, strength = queue.popleft()
     node = nodes[x][y]
-    # aplicamos viento limitado por MAX_WIND
     node.add(strength, MAX_WIND)
 
-    # calculamos fuerza para la siguiente capa
     next_strength = strength // GROW_FACTOR
     if next_strength <= 0:
       continue
 
-    # encolamos vecinos no visitados
     for nb in get_neighbors(x, y, nodes, GRID_SIZE):
       coord = (nb.x, nb.y)
       if coord in visited:
         continue
+
       visited.add(coord)
       queue.append((nb.x, nb.y, next_strength))
 
@@ -163,6 +160,6 @@ with Live(console=console) as live:
         node.remove(increment)
 
     live.update(panel)
-    time.sleep(1)
+    time.sleep(.500)
 
     tick += 1
