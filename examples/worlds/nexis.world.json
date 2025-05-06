@@ -49,7 +49,7 @@
       "backgrounds": { "day": "bg right_corridor" },
       "connected_locations": [
         { "name": "Man Bathroom", "one_way": true },
-        { "name": "Woman Bathroom", "one_way": true }
+        "Woman Bathroom"
       ]
     },
     {

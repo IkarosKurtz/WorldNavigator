@@ -2,7 +2,7 @@ import json as JSON
 
 from worldnavigator.core.world import World
 from worldnavigator.locations.base_location import Location
-from worldnavigator.typed_dicts import LocationDict
+from worldnavigator.types.typed_dicts import LocationDict
 from worldnavigator.errors import NoLocationsFoundError
 
 
@@ -42,7 +42,7 @@ class WorldParser:
       new_location = Location(
         name=location.get('name', 'Unknown'),
         backgrounds=location.get('backgrounds', {}),
-        objects=location.get('objects', []),
+        objects=location.get('objects', {}),
         is_indoor=location.get('is_indoor', False)
       )
 

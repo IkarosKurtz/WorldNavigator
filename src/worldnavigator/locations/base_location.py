@@ -1,7 +1,8 @@
+from worldnavigator.core.world_object import WorldObject
 from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError
 from worldnavigator.errors.missing_day_bg import MissingDayBackgroundError
 from worldnavigator.observer import Observer
-from worldnavigator.typed_dicts import BackgroundsDict
+from worldnavigator.types.typed_dicts import BackgroundsDict
 
 
 class LocationBackground:
@@ -77,7 +78,7 @@ class Location(Observer):
                *,
                name: str,
                backgrounds: BackgroundsDict,
-               objects: list = None,
+               objects: dict[str, WorldObject] = None,
                is_indoor: bool = False):
     super().__init__()
     self._name = name
@@ -86,7 +87,7 @@ class Location(Observer):
       raise MissingDayBackgroundError(self._name)
 
     self._backgrounds = LocationBackground(backgrounds)
-    self._objects = objects if objects is not None else []
+    self._objects: dict[str, WorldObject] = objects if objects is not None else {}
     self._is_indoor = is_indoor
 
     self._connections: dict[str, 'Location'] = {}
@@ -111,7 +112,7 @@ class Location(Observer):
     return self._backgrounds
 
   @property
-  def objects(self) -> list:
+  def objects(self) -> dict[str, WorldObject]:
     return self._objects
 
   @property
@@ -151,11 +152,14 @@ class Location(Observer):
 
     self.connections.pop(location_name)
 
-  def add_object(self, obj: str):
-    self._objects.append(obj)
+  def add_object(self, obj: WorldObject):
+    self._objects[obj.name] = obj
 
-  def remove_object(self, obj: str):
-    self._objects.remove(obj)
+  def remove_object(self, obj_name: str) -> WorldObject:
+    return self._objects.pop(obj_name)
+
+  def get_object(self, obj_name: str) -> WorldObject:
+    return self._objects[obj_name]
 
   def add_character(self, character: str) -> None:
     if character in self._characters:

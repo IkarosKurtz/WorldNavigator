@@ -4,6 +4,8 @@ from worldnavigator.errors.location_not_found import LocationNotFoundError
 from worldnavigator.errors.duplicated_location import DuplicatedLocationError
 from worldnavigator.errors.character_already_present import CharacterAlreadyPresentError
 from worldnavigator.errors.character_not_found import CharacterNotFoundError
+from worldnavigator.errors.event_not_found import EventNotFound
+from worldnavigator.errors.is_not_a_function import IsNotAFunctionError
 
 __all__ = [
   'NoLocationsFoundError',
@@ -11,5 +13,7 @@ __all__ = [
   'LocationNotFoundError',
   'DuplicatedLocationError',
   'CharacterAlreadyPresentError',
-  'CharacterNotFoundError'
+  'CharacterNotFoundError',
+  'EventNotFound',
+  'IsNotAFunctionError',
 ]
