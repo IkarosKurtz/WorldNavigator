@@ -5,7 +5,7 @@
       "name": "School",
       "is_indoor": false,
       "backgrounds": { "day": "bg school" },
-      "connected_locations": ["Park", "West Street"]
+      "connected_locations": ["Park", "West Street", "Main Entrance"]
     },
     {
       "name": "Main Entrance",
