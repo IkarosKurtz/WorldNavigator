@@ -162,6 +162,5 @@ cython_debug/
 #.idea/
 
 tmp/
-test.py
 main.test.py
 nexis.old.json
