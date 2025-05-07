@@ -10,6 +10,10 @@ MIN_WIND = 3
 MAX_WIND = 20
 MIN_INCREMENT = 5
 TEMPERATURE_FACTOR = .1
+ALPHA = .4
+BETA = .02
+MAX_TEMP = 34
+MIN_TEMP = 10
 
 
 @dataclass
@@ -18,6 +22,9 @@ class WeatherNode:
   wind: int = field(default=MIN_WIND)
   temperature: int = field(default=20)
   _id: int = field(default_factory=lambda: uuid4().int)
+
+  def adjust_temperature(self, delta: int) -> None:
+    pass
 
   def add(self, increment: int, *, cap: int = MAX_WIND) -> None:
     # TODO: Better way of adding wind, not always need some increment
@@ -42,6 +49,8 @@ class WeatherSystem:
     self._visited: Set[WeatherNode] = set()
     self._center: Optional[WeatherNode] = None
 
+    self._clock = [12, 0]
+
     # Initialize weather nodes for each location
     for location in locations.values():
       self.add_node(location.name)
@@ -53,7 +62,7 @@ class WeatherSystem:
   ################ Private Methods ################
   #################################################
 
-  def _get_neighbors(self, location: 'Location') -> List[WeatherNode]:
+  def _get_neighbors(self, location: 'Location', *, filter: bool = True) -> List[WeatherNode]:
     neighbors = []
 
     for connection in location.connections.values():
@@ -61,16 +70,40 @@ class WeatherSystem:
       if weather_node is None:
         continue
 
-      if weather_node in self._visited:
+      if filter and weather_node in self._visited:
         continue
 
       neighbors.append(weather_node)
 
     return neighbors
 
+  def _get_temperature_by_time(self) -> float:
+    options = {
+      self._clock[0] < 12: -.7,
+      12 <= self._clock[0] < 18: 1,
+      18 <= self._clock[0] <= 24: -.5,
+    }
+
+    return options[True]
+
+  def _update_clock(self, amount: int = 1) -> None:
+    if self._clock[0] >= 24:
+      self._clock[0] = 0
+
+    if self._clock[1] >= 60:
+      self._clock[1] = 0
+      self._clock[0] += 1
+
+    self._clock[1] += amount
+
   #################################################
   ################ Public Methods #################
   #################################################
+
+  def show_clock(self):
+    hours = self._clock[0] if self._clock[0] >= 10 else f'0{self._clock[0]}'
+    minutes = self._clock[1] if self._clock[1] >= 10 else f'0{self._clock[1]}'
+    return f'{hours}:{minutes}'
 
   def add_node(self, location_name: str) -> None:
     self._weather_nodes[location_name] = WeatherNode(location_name)
@@ -79,7 +112,11 @@ class WeatherSystem:
     if not self._weather_nodes:
       return
 
-    self._center = random.choice(list(self._weather_nodes.values()))
+    location = None
+    while not location or location.is_indoor:
+      self._center = random.choice(list(self._weather_nodes.values()))
+      location = self._locations[self._center.connected_to]
+
     self._increment = random.randint(MIN_INCREMENT, MAX_WIND)
     self._center.add(self._increment)
     self._center.temperature += random.choice([-5, -2, 0, 2, 5])
@@ -89,6 +126,7 @@ class WeatherSystem:
     idx = 0
 
     while True:
+      self._update_clock(10)
       if self._center is None:
         yield idx
         idx += 1
@@ -109,13 +147,12 @@ class WeatherSystem:
             self._visited.add(node)
 
       for node in self._visited:
-        node.add(round(self._increment * .2), cap=self._center.wind)
+        location = self._locations[node.connected_to]
+        if location.is_indoor:
+          node.add(round(self._increment * 0.05), cap=self._center.wind)
+          continue
 
-        neighbors = self._get_neighbors(self._locations[node.connected_to])
-        for neighbor in neighbors:
-          delta_temp = neighbor.temperature - node.temperature
-          temp_change = delta_temp * (node.wind / MAX_WIND) * TEMPERATURE_FACTOR
-          node.temperature += temp_change
+        node.add(round(self._increment * .2), cap=self._center.wind)
 
       for node in self._weather_nodes.values():
         if node in self._visited or node == self._center:
@@ -123,15 +160,29 @@ class WeatherSystem:
 
         node.remove(1)
 
-        # Difusión con vecinos
-        neighbors = self._get_neighbors(self._locations[node.connected_to])
-        for neighbor in neighbors:
-          delta_temp = neighbor.temperature - node.temperature
-          node.temperature += delta_temp * 0.01
+      new_temp: dict[str, int] = {}
 
-        # Tendencia a temperatura ambiente
-        delta_temp = 20 - node.temperature
-        node.temperature += delta_temp * 0.005
+      for node in self._weather_nodes.values():
+        temperature = node.temperature
+        location = self._locations[node.connected_to]
+
+        neighbors = self._get_neighbors(self._locations[node.connected_to], filter=False)
+        diff = sum(neighbor.temperature - temperature for neighbor in neighbors)
+        total_neighbors = len(neighbors) or 1
+        delta_diff = ALPHA * (diff / total_neighbors)  # Normalize the diff by the number of neighbors
+
+        if node in self._visited or node == self._center:
+          delta_adv = BETA * (self._center.temperature - temperature)
+        else:
+          delta_adv = 0
+
+        next_temperature = round(temperature + delta_diff + delta_adv + self._get_temperature_by_time())
+        next_temperature = max(MIN_TEMP, min(MAX_TEMP, next_temperature))
+
+        new_temp[node.connected_to] = next_temperature if not location.is_indoor else round(next_temperature * .85)
+
+      for node_name, next_temperature in new_temp.items():
+        self._weather_nodes[node_name].temperature = next_temperature
 
       yield idx
       idx += 1

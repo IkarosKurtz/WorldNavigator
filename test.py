@@ -43,8 +43,10 @@ with Live(console=Console()) as live:
       table,
       f'Center: {weather_system._center.connected_to}',
       f'Increment: {weather_system._increment}',
+      f'Clock: {weather_system.show_clock()}',
+      f'Temperature: {weather_system._get_temperature_by_time()}'
     ]))
 
     live.update(panel)
 
-    time.sleep(2)
+    time.sleep(1)
