@@ -5,6 +5,7 @@ from rich.panel import Panel
 from rich.console import Console
 from rich.panel import Panel
 from rich.live import Live
+from rich.text import Text
 from rich.columns import Columns
 
 
@@ -27,6 +28,7 @@ with Live(console=Console()) as live:
     table.add_column('Location')
     table.add_column('Wind')
     table.add_column('Temperature')
+    table.add_column('Humidity')
     table.add_column('Connections')
 
     for location, weather_node in zip(world.locations, weather_system._weather_nodes.values()):
@@ -36,15 +38,16 @@ with Live(console=Console()) as live:
         8 <= weather_node.wind <= 16: f'[b green]{weather_node.wind}[/]',
         16 <= weather_node.wind <= 20: f'[b blue]{weather_node.wind}[/]',
       }
-      table.add_row(location.name, options[True], str(weather_node.temperature), connections)
+      table.add_row(location.name, options[True], str(weather_node.temperature),
+                    str(round(weather_node.humidity)) + '%', connections)
 
     table.add_row(str(i))
-    panel = Panel.fit(Columns([
+    panel = Panel(Columns([
       table,
-      f'Center: {weather_system._center.connected_to}',
-      f'Increment: {weather_system._increment}',
-      f'Clock: {weather_system.show_clock()}',
-      f'Temperature: {weather_system._get_temperature_by_time()}'
+      Panel(Columns([
+          Text(f'Center: {weather_system._center.connected_to}\nIncrement: {weather_system._increment}\nTemperature: {weather_system._get_temperature_by_time()}', style='bold blue'),
+          f'Clock: {weather_system.show_clock()}',
+      ]))
     ]))
 
     live.update(panel)

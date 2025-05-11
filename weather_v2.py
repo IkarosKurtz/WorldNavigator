@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
-import random
 from typing import Iterator, List, Dict, Optional, Set, TYPE_CHECKING
 from uuid import uuid4
+import math
+import random
 
 if TYPE_CHECKING:
   from worldnavigator.locations.base_location import Location
@@ -15,12 +16,16 @@ BETA = .02
 MAX_TEMP = 34
 MIN_TEMP = 10
 
+HUMIDITY_DIFFUSION = 0.2
+EVAPORATION_FACTOR = 0.02
+
 
 @dataclass
 class WeatherNode:
   connected_to: str
   wind: int = field(default=MIN_WIND)
   temperature: int = field(default=20)
+  humidity: float = field(default=0.0)
   _id: int = field(default_factory=lambda: uuid4().int)
 
   def adjust_temperature(self, delta: int) -> None:
@@ -120,6 +125,7 @@ class WeatherSystem:
     self._increment = random.randint(MIN_INCREMENT, MAX_WIND)
     self._center.add(self._increment)
     self._center.temperature += random.choice([-5, -2, 0, 2, 5])
+
     self._visited = set()
 
   def propagate(self) -> Iterator[None]:
@@ -182,7 +188,20 @@ class WeatherSystem:
         new_temp[node.connected_to] = next_temperature if not location.is_indoor else round(next_temperature * .85)
 
       for node_name, next_temperature in new_temp.items():
-        self._weather_nodes[node_name].temperature = next_temperature
+        node = self._weather_nodes[node_name]
+        node.temperature = next_temperature
+
+        T = next_temperature
+        es = 6.1094 * math.exp(17.625 * T / (T + 243.04))
+        e = (node.humidity / 100) * es
+
+        neighbors = self._get_neighbors(self._locations[node.connected_to], filter=False)
+        hum_diff = sum(n.humidity - node.humidity for n in neighbors)
+        delta_diff = HUMIDITY_DIFFUSION * (hum_diff / (len(neighbors) or 1))
+        delta_source = EVAPORATION_FACTOR * (es - e)
+        next_humidity = round(node.humidity + delta_diff + delta_source) - (0.01 * node.wind)
+        next_humidity = max(0, min(100, next_humidity))
+        node.humidity = next_humidity
 
       yield idx
       idx += 1
