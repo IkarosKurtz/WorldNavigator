@@ -18,6 +18,7 @@ MIN_TEMP = 10
 
 HUMIDITY_DIFFUSION = 0.2
 EVAPORATION_FACTOR = 0.02
+WIND_DRY_FACTOR = 0.01
 
 
 @dataclass
@@ -199,7 +200,7 @@ class WeatherSystem:
         hum_diff = sum(n.humidity - node.humidity for n in neighbors)
         delta_diff = HUMIDITY_DIFFUSION * (hum_diff / (len(neighbors) or 1))
         delta_source = EVAPORATION_FACTOR * (es - e)
-        next_humidity = round(node.humidity + delta_diff + delta_source) - (0.01 * node.wind)
+        next_humidity = round(node.humidity + delta_diff + delta_source) - (WIND_DRY_FACTOR * node.wind)
         next_humidity = max(0, min(100, next_humidity))
         node.humidity = next_humidity
 
