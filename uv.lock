@@ -6,6 +6,15 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "certifi"
+version = "2025.4.26"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/9e/c05b3920a3b7d20d3d3310465f50348e5b3694f4f88c6daf736eef3024c4/certifi-2025.4.26.tar.gz", hash = "sha256:0a816057ea3cdefcef70270d2c515e4506bbc954f417fa5ade2021213bb8f0c6", size = 160705 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4a/7e/3db2bd1b1f9e95f7cddca6d6e75e2f2bd9f51b1246e546d88addca0106bd/certifi-2025.4.26-py3-none-any.whl", hash = "sha256:30350364dfe371162649852c63336a15c70c6510c2ad5015b21c2345311805f3", size = 159618 },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -36,6 +45,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-json-logger"
+version = "3.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9e/de/d3144a0bceede957f961e975f3752760fbe390d57fbe194baf709d8f1f7b/python_json_logger-3.3.0.tar.gz", hash = "sha256:12b7e74b17775e7d565129296105bbe3910842d9d0eb083fc83a6a617aa8df84", size = 16642 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/08/20/0f2523b9e50a8052bc6a8b732dfc8568abbdc42010aef03a2d750bdab3b2/python_json_logger-3.3.0-py3-none-any.whl", hash = "sha256:dd980fae8cffb24c13caf6e158d3d61c0d6d22342f932cb6e9deedab3d35eec7", size = 15163 },
+]
+
+[[package]]
 name = "rich"
 version = "14.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -49,6 +67,28 @@ wheels = [
 ]
 
 [[package]]
+name = "sentry-sdk"
+version = "2.28.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5e/bb/6a41b2e0e9121bed4d2ec68d50568ab95c49f4744156a9bbb789c866c66d/sentry_sdk-2.28.0.tar.gz", hash = "sha256:14d2b73bc93afaf2a9412490329099e6217761cbab13b6ee8bc0e82927e1504e", size = 325052 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9b/4e/b1575833094c088dfdef63fbca794518860fcbc8002aadf51ebe8b6a387f/sentry_sdk-2.28.0-py2.py3-none-any.whl", hash = "sha256:51496e6cb3cb625b99c8e08907c67a9112360259b0ef08470e532c3ab184a232", size = 341693 },
+]
+
+[[package]]
+name = "urllib3"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8a/78/16493d9c386d8e60e442a35feac5e00f0913c0f4b7c217c11e8ec2ff53e0/urllib3-2.4.0.tar.gz", hash = "sha256:414bc6535b787febd7567804cc015fee39daab8ad86268f1310a9250697de466", size = 390672 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6b/11/cc635220681e93a0183390e26485430ca2c7b5f9d33b15c74c2861cb8091/urllib3-2.4.0-py3-none-any.whl", hash = "sha256:4e16665048960a0900c702d4a66415956a584919c03361cac9f1df5c5dd7e813", size = 128680 },
+]
+
+[[package]]
 name = "worldnavigator"
 version = "0.2.0"
 source = { editable = "." }
@@ -56,5 +96,17 @@ dependencies = [
     { name = "rich" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "python-json-logger" },
+    { name = "sentry-sdk" },
+]
+
 [package.metadata]
 requires-dist = [{ name = "rich", specifier = ">=14.0.0" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "python-json-logger", specifier = ">=3.3.0" },
+    { name = "sentry-sdk", specifier = ">=2.28.0" },
+]

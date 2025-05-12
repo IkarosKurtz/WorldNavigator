@@ -10,3 +10,9 @@ dependencies = ["rich>=14.0.0"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "python-json-logger>=3.3.0",
+    "sentry-sdk>=2.28.0",
+]

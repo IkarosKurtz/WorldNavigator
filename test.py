@@ -1,3 +1,4 @@
+import sentry_sdk
 import time
 
 from rich.table import Table
@@ -19,6 +20,12 @@ weather_system = WeatherSystem(world._locations)
 print(weather_system)
 
 
+sentry_sdk.init(
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
+
 with Live(console=Console()) as live:
   for i in weather_system.propagate():
     if i % 4 == 0:
@@ -34,12 +41,12 @@ with Live(console=Console()) as live:
     for location, weather_node in zip(world.locations, weather_system._weather_nodes.values()):
       connections = ', '.join([connection.name for connection in location.connections.values()])
       options = {
-        weather_node.wind < 8: f'[b yellow]{weather_node.wind}[/]',
-        8 <= weather_node.wind <= 16: f'[b green]{weather_node.wind}[/]',
-        16 <= weather_node.wind <= 20: f'[b blue]{weather_node.wind}[/]',
+        weather_node.wind < 8: f'[b yellow]{round(weather_node.wind, 2)}[/]',
+        8 <= weather_node.wind <= 16: f'[b green]{round(weather_node.wind, 2)}[/]',
+        16 <= weather_node.wind <= 20: f'[b blue]{round(weather_node.wind, 2)}[/]',
       }
-      table.add_row(location.name, options[True], str(weather_node.temperature),
-                    str(round(weather_node.humidity)) + '%', connections)
+      table.add_row(location.name, options[True], str(round(weather_node.temperature, 2)),
+                    str(round(weather_node.humidity, 2)) + '%', connections)
 
     table.add_row(str(i))
     panel = Panel(Columns([
@@ -52,4 +59,4 @@ with Live(console=Console()) as live:
 
     live.update(panel)
 
-    time.sleep(1)
+    time.sleep(.5)
