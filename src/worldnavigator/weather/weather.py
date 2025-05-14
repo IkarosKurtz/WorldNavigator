@@ -142,7 +142,7 @@ class WorldWeather:
     This method will yield the weather conditions for each hour continuously
     without needing to call the simulation function repeatedly.
 
-    :yield: A dictionary representing the current weather conditions for each hour.
+    :return: An iterator that yields the weather conditions for each hour.
     """
     current_conditions = self._generate_weather('Sunny')
     current_weather: Weather = 'Sunny'
