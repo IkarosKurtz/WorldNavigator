@@ -17,22 +17,22 @@ class WorldObject(Generic[EventType, EventName]):
   WorldObject serves as the base class for all interactive objects within the world navigation system.
   It provides a flexible interaction mechanism that allows defining custom interactions for each object.
 
-  Examples:
-  ```python
-  # Create a simple book object
-  Events = Literal["read", "open"]
-  book = WorldObject[Events]("Ancient Book")
-
-  # Register interactions
-  book.register_interaction("read", lambda: print("You read the mysterious text..."))
-  book.register_interaction("open", lambda: print("The book creaks as you open it"))
-
-  # Interact with the object
-  book.interact("read")  # Outputs: You read the mysterious text...
-  ```
-
   Generic Parameter:
-  - V: A Literal type with the possible interactions for the specific WorldObject implementation.
+    - V: A Literal type with the possible interactions for the specific WorldObject implementation.
+
+  .. code-block:: python
+
+    from typing import Literal
+
+    Events = Literal["read", "open"] # Your events
+    book = WorldObject[Events]("Ancient Book")
+
+    # Register interactions
+    book.register_interaction("read", lambda: print("You read the mysterious text..."))
+    book.register_interaction("open", lambda: print("The book creaks as you open it"))
+
+    # Interact with the object
+    book.interact("read")  # Outputs: You read the mysterious text...
   """
 
   def __init__(self, name: str):
