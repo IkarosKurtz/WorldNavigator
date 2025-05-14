@@ -3,10 +3,16 @@ from worldnavigator.types import BASIC_TYPES
 
 def is_valid_prop_value(value: type | tuple[type, str]) -> bool:
   """
-  Check if value from Params, is a basic type or a tuple with the correct types.
+  Check if the provided value from Params is a basic type or a tuple with the correct types.
 
-  :param type | tuple[type, str] value:
-  :return: If this prop is correctly defined
+  This function validates whether the given value is either a basic type (int, float, str, bool)
+  or a tuple consisting of a type and a description string. It is used to ensure that the parameters
+  defined in the :class:`Params` class conform to expected types.
+
+  :param type | tuple[type, str] value: The value to validate, which can be a type or a tuple
+                                         containing a type and a description.
+
+  :return: True if the value is correctly defined as a basic type or a valid tuple; otherwise, False.
   """
   if isinstance(value, type) and issubclass(value, BASIC_TYPES):
     return True
