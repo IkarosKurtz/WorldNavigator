@@ -19,11 +19,10 @@ class Params:
   This class allows the definition of parameters with their types for event handling
   in a structured way. It can be used to annotate event attributes in classes.
 
-  Example:
-  ```py
-  class MyEvents:
-      hear: Annotated[str, Params(time=float, topic=str)]
-  ```
+  .. code-block:: python
+    class MyEvents:
+        hear: Annotated[str, Params(time=float, topic=str)]
+
 
   :param **params: Arbitrary keyword arguments representing parameters and their types.
   """
@@ -49,6 +48,10 @@ class Params:
     :return: A view of the parameters' items as (key, value) pairs.
     """
     return self._params.items()
+
+  #################################################
+  ################### Properties ##################
+  #################################################
 
   @property
   def params(self):

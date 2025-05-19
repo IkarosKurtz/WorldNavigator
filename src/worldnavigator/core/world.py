@@ -77,6 +77,7 @@ class World:
     Determines where a specific character is located.
 
     :param str character: The character to find the location of.
+
     :return: The location of the character.
     """
 

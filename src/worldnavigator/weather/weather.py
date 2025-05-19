@@ -16,7 +16,7 @@ class WorldWeather:
   """
 
   def __init__(self) -> None:
-    self.weather: Dict[Weather, WeatherConditionsDict] = {
+    self._weather: Dict[Weather, WeatherConditionsDict] = {
         'Sunny': {'temperature': (25, 35), 'humidity': (10, 30), 'wind': (0, 10), 'clouds': (0, 20)},
         'Cloudy': {'temperature': (15, 25), 'humidity': (40, 60), 'wind': (5, 15), 'clouds': (60, 100)},
         'Rainy': {'temperature': (10, 20), 'humidity': (70, 90), 'wind': (10, 20), 'clouds': (80, 100)},
@@ -24,13 +24,17 @@ class WorldWeather:
         'Snowy': {'temperature': (-5, 5), 'humidity': (60, 80), 'wind': (5, 15), 'clouds': (70, 100)}
     }
 
-    self.posible_transitions: Dict[Weather, Callable[[], str]] = {
+    self._posible_transitions: Dict[Weather, Callable[[], str]] = {
         'Sunny': lambda: random.choice(['Cloudy', 'Rainy']),
         'Cloudy': lambda: random.choice(['Sunny', 'Rainy', 'Stormy', 'Snowy']),
         'Rainy': lambda: random.choice(['Cloudy', 'Stormy']),
         'Stormy': lambda: random.choice(['Rainy', 'Cloudy']),
         'Snowy': lambda: random.choice(['Cloudy'])
       }
+
+  #################################################
+  ################ Private Methods ################
+  #################################################
 
   def _interpolate(self, initial_value: float, final_value: float, step: int, max_steps: int) -> float:
     """
@@ -53,7 +57,7 @@ class WorldWeather:
 
     :return: A dictionary containing the weather state and its associated conditions.
     """
-    conditions = self.weather[weather]
+    conditions = self._weather[weather]
     temperature = random.uniform(*conditions['temperature'])
     humidity = random.uniform(*conditions['humidity'])
     wind = random.uniform(*conditions['wind'])
@@ -91,6 +95,10 @@ class WorldWeather:
 
     return steps
 
+  #################################################
+  ################ Public Methods #################
+  #################################################
+
   def simulate_weather_with_transitions(self, total_duration: int, last_weather: Weather = 'Sunny') -> list[GeneratedWeatherDict]:
     """
     Simulates weather over a specified duration with transitions between states.
@@ -120,7 +128,7 @@ class WorldWeather:
         transition_duration = remaining_period
 
       # Choose the next weather
-      new_weather = self.posible_transitions[current_weather]()
+      new_weather = self._posible_transitions[current_weather]()
       final_conditions = self._generate_weather(new_weather)
 
       # Perform the transition
@@ -152,7 +160,7 @@ class WorldWeather:
       transition_duration = random.randint(2, 6)
 
       # Choose the next weather
-      new_weather = self.posible_transitions[current_weather]()
+      new_weather = self._posible_transitions[current_weather]()
       final_conditions = self._generate_weather(new_weather)
 
       # Perform the transition

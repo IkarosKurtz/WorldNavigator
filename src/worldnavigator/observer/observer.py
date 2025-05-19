@@ -83,9 +83,9 @@ class Observer:
 
     :param EventName event_name: The name of the event to trigger.
     :param dict data: The data to pass to the event.
-    :raises ValueError: If the event is not registered or if the data does not match the expected types.
 
     :return: The result of the callback function.
+    :raises ValueError: If the event is not registered or if the data does not match the expected types.
     """
     if event_name not in self.events:
       raise ValueError('Event not registered')

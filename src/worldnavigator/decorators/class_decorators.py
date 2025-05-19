@@ -14,10 +14,19 @@ def evaluate_events(cls: Any):
   event attribute is of type `Annotated` with a base type of `str` and that the
   associated metadata is an instance of the `Params` class.
 
+  Example:
+  .. code-block:: python
+    from worldnavigator.types import Params
+    from worldnavigator.decorators import evaluate_events
+
+    @evaluate_events # Check if the class has the correct format
+    class MyEvents:
+        hear: Annotated[str, Params(time=float, topic=str)]
+
   :param Any cls: The events class to validate.
-  :raises ValueError: If any event attribute does not conform to the expected format.
 
   :return: The original class if all validations pass.
+  :raises ValueError: If any event attribute does not conform to the expected format.
   """
   # Check each attribute for annotations
   for attr_name, attr_type in inspect.get_annotations(cls).items():
