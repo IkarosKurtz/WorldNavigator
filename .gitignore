@@ -164,3 +164,7 @@ cython_debug/
 tmp/
 main.test.py
 nexis.old.json
+_docs/**
+.cursor/**
+.github/**
+.cursorrules
