@@ -10,6 +10,15 @@ Weather = Literal[
   'Stormy',
   'Snowy',
 ]
+"""
+A type representing all possible weather states in the :class:`WorldWeather <worldnavigator.weather.weather.WorldWeather>` class.
+
+- ``Sunny``: A weather with no clouds and a clear sky but with high temperatures.
+- ``Cloudy``: A weather with clouds covering the sky, but not necessarily rain.
+- ``Rainy``: A weather with clouds and light rain, without thunderstorms.
+- ``Stormy``: A weather with clouds and heavy rain, with possibility of thunderstorms.
+- ``Snowy``: A weather with clouds and falling snow, lower temperatures.
+"""
 
 
 class Params:
@@ -20,8 +29,11 @@ class Params:
   in a structured way. It can be used to annotate event attributes in classes.
 
   .. code-block:: python
+
+    from worldnavigator.types import Params
+
     class MyEvents:
-        hear: Annotated[str, Params(time=float, topic=str)]
+      hear: Annotated[str, Params(time=float, topic=str)]
 
 
   :param **params: Arbitrary keyword arguments representing parameters and their types.

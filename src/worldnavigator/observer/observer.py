@@ -7,11 +7,11 @@ class Observer:
   """
   Implements the Observer pattern for event handling in the WorldNavigator system.
 
-  The :class:`Observer` class provides a foundation for objects that need to emit events and 
+  Provides a foundation for objects that need to emit events and 
   respond to events from other objects. It allows for type-safe event registration
   and triggering with proper argument validation.
 
-  This class is used as a base for objects like :class:`Locations` and :class:`World` that need to
+  This class is used as a base for objects like :class:`Location <worldnavigator.locations.base_location.Location>` and :class:`World <worldnavigator.core.world.World>` that need to
   communicate state changes (such as characters being added or removed) to other
   components of the system.
   """

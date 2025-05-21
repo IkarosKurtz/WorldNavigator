@@ -11,19 +11,19 @@ def evaluate_events(cls: Any):
 
   This decorator function inspects the attributes of the given class to ensure that
   each event is properly annotated with the expected types. It verifies that each
-  event attribute is of type `Annotated` with a base type of `str` and that the
+  event attribute is of type ``Annotated`` with a base type of ``str`` and that the
   associated metadata is an instance of the `Params` class.
 
   Example:
+
   .. code-block:: python
+
     from worldnavigator.types import Params
     from worldnavigator.decorators import evaluate_events
 
     @evaluate_events # Check if the class has the correct format
     class MyEvents:
         hear: Annotated[str, Params(time=float, topic=str)]
-
-  :param Any cls: The events class to validate.
 
   :return: The original class if all validations pass.
   :raises ValueError: If any event attribute does not conform to the expected format.

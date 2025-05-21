@@ -2,7 +2,6 @@ from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError
 from typing import TYPE_CHECKING, List, Dict
 
 if TYPE_CHECKING:
-  # Only import Location for type checking to avoid circular imports
   from worldnavigator.locations.base_location import Location
 
 

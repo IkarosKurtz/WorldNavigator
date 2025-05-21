@@ -1,2 +1,3 @@
-def hello() -> str:
-    return "Hello from worldnavigator!"
+from importlib.metadata import version
+
+__version__ = version('worldnavigator')

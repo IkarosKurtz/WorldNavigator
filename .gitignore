@@ -165,6 +165,7 @@ tmp/
 main.test.py
 nexis.old.json
 _docs/**
+docs_page/_build
 .cursor/**
 .github/**
 .cursorrules
