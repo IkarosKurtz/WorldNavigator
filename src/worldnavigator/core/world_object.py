@@ -1,10 +1,10 @@
 import inspect
-from typing import Callable, Generic, Tuple, TypeVar, get_args, get_type_hints
+from typing import Any, Callable, Generic, Tuple, TypeVar, get_args, get_type_hints
 
 from worldnavigator.errors import EventNotFound, IsNotAFunctionError
 
 
-EventType = TypeVar('EventType')
+EventType = TypeVar('EventType', bound=object)
 EventName = TypeVar('EventName', bound=str)
 
 BASIC_TYPES = (int, float, str, bool)
@@ -18,21 +18,8 @@ class WorldObject(Generic[EventType, EventName]):
   It provides a flexible interaction mechanism that allows defining custom interactions for each object.
 
   Generic Parameter:
-    - V: A Literal type with the possible interactions for the specific WorldObject implementation.
-
-  .. code-block:: python
-
-    from typing import Literal
-
-    Events = Literal["read", "open"] # Your events
-    book = WorldObject[Events]("Ancient Book")
-
-    # Register interactions
-    book.register_interaction("read", lambda: print("You read the mysterious text..."))
-    book.register_interaction("open", lambda: print("The book creaks as you open it"))
-
-    # Interact with the object
-    book.interact("read")  # Outputs: You read the mysterious text...
+    - EventType: Class with the definitions of the events for the specific WorldObject implementation.
+    - EventName: A Literal type with the possible interactions for the specific WorldObject implementation.
   """
 
   def __init__(self, name: str):
@@ -44,7 +31,19 @@ class WorldObject(Generic[EventType, EventName]):
   #################################################
 
   @property
+  def events(self) -> list[str]:
+    """
+    List of event names
+    """
+    self._define_hints()
+
+    return list(self._hints_of.keys())
+
+  @property
   def name(self) -> str:
+    """
+    Name of the Object
+    """
     return self._name
 
   #################################################
@@ -70,20 +69,16 @@ class WorldObject(Generic[EventType, EventName]):
     return (value_type, value_description)
 
   #################################################
-  ################### Properties ##################
-  #################################################
-
-  @property
-  def events(self) -> list[str]:
-    self._define_hints()
-
-    return list(self._hints_of.keys())
-
-  #################################################
   ################ Public Methods #################
   #################################################
 
   def register_interaction(self, kind: EventName, func: Callable) -> None:
+    """
+    Register an interaction/callback to be called when the event is triggered with ``interact`` method.
+
+    :param EventName kind: The name of the event to listen to.
+    :param Callable func: The function to call when the event is triggered.
+    """
     self._define_hints()
 
     # We need to know what event we want to listen
@@ -127,7 +122,7 @@ class WorldObject(Generic[EventType, EventName]):
       param_type = params.get(key, None)
 
       if param_type is None:
-        raise ValueError(f'Misssing parameter "{key}" in function "{func.__name__}" for event "{kind}"')
+        raise ValueError(f'Missing parameter "{key}" in function "{func.__name__}" for event "{kind}"')
       param_type = param_type.annotation
 
       if inspect.Parameter.empty == param_type:
@@ -139,7 +134,13 @@ class WorldObject(Generic[EventType, EventName]):
 
     self._interactions_func[kind] = func
 
-  def interact(self, kind: EventName, **payload) -> None:
+  def interact(self, kind: EventName, **payload: dict[str, Any]) -> None:
+    """
+    Interact with this object by triggering a specific event, passing the data as keyword arguments.
+
+    :param EventName kind: The name of the event to trigger.
+    :param dict[str, Any] payload: The data to pass to the event.
+    """
     func = self._interactions_func.get(kind, None)
 
     if func is None:

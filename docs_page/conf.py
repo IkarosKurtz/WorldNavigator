@@ -14,6 +14,7 @@ extensions = [
   'sphinx.ext.autodoc',
   'sphinx.ext.coverage',
   'sphinx.ext.napoleon',
+  'sphinx_copybutton',
   # 'autoapi.extension'
 ]
 
@@ -29,7 +30,7 @@ source_dir = '.'
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
+autodoc_member_order = 'bysource'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

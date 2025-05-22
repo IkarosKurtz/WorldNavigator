@@ -19,7 +19,7 @@ class WorldParser:
   """
 
   @classmethod
-  def scene_graph_parser(cls, json: dict | str):
+  def scene_graph_parser(cls, json: dict | str) -> World:
     """
     Parse a JSON with SceneGraph format.
 

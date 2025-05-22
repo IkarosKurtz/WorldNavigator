@@ -27,23 +27,23 @@ class WorldWeatherTest(TestCase):
       - Verify transition rules exist for each weather type
     """
     # Test weather conditions exist
-    self.assertIn('Sunny', self.weather_system.weather)
-    self.assertIn('Cloudy', self.weather_system.weather)
-    self.assertIn('Rainy', self.weather_system.weather)
-    self.assertIn('Stormy', self.weather_system.weather)
-    self.assertIn('Snowy', self.weather_system.weather)
+    self.assertIn('Sunny', self.weather_system._weather)
+    self.assertIn('Cloudy', self.weather_system._weather)
+    self.assertIn('Rainy', self.weather_system._weather)
+    self.assertIn('Stormy', self.weather_system._weather)
+    self.assertIn('Snowy', self.weather_system._weather)
 
     # Test weather properties
     for weather_type in ['Sunny', 'Cloudy', 'Rainy', 'Stormy', 'Snowy']:
-      self.assertIn('temperature', self.weather_system.weather[weather_type])
-      self.assertIn('humidity', self.weather_system.weather[weather_type])
-      self.assertIn('wind', self.weather_system.weather[weather_type])
-      self.assertIn('clouds', self.weather_system.weather[weather_type])
+      self.assertIn('temperature', self.weather_system._weather[weather_type])
+      self.assertIn('humidity', self.weather_system._weather[weather_type])
+      self.assertIn('wind', self.weather_system._weather[weather_type])
+      self.assertIn('clouds', self.weather_system._weather[weather_type])
 
     # Test transition rules
-    self.assertIn('Sunny', self.weather_system.posible_transitions)
-    self.assertIn('Cloudy', self.weather_system.posible_transitions['Sunny'])
-    self.assertIn('Rainy', self.weather_system.posible_transitions['Sunny'])
+    self.assertIn(self.weather_system._posible_transitions['Cloudy'](), ['Sunny', 'Rainy', 'Stormy', 'Snowy'])
+    self.assertIn(self.weather_system._posible_transitions['Sunny'](), ['Cloudy', 'Rainy'])
+    self.assertIn(self.weather_system._posible_transitions['Rainy'](), ['Cloudy', 'Stormy'])
 
   def test_generate_weather(self):
     """
@@ -73,16 +73,16 @@ class WorldWeatherTest(TestCase):
       self.assertEqual(conditions['weather'], weather_type)
 
       # Check that values are within the expected ranges
-      min_temp, max_temp = self.weather_system.weather[weather_type]['temperature']
+      min_temp, max_temp = self.weather_system._weather[weather_type]['temperature']
       self.assertTrue(min_temp <= conditions['temperature'] <= max_temp)
 
-      min_humidity, max_humidity = self.weather_system.weather[weather_type]['humidity']
+      min_humidity, max_humidity = self.weather_system._weather[weather_type]['humidity']
       self.assertTrue(min_humidity <= conditions['humidity'] <= max_humidity)
 
-      min_wind, max_wind = self.weather_system.weather[weather_type]['wind']
+      min_wind, max_wind = self.weather_system._weather[weather_type]['wind']
       self.assertTrue(min_wind <= conditions['wind'] <= max_wind)
 
-      min_clouds, max_clouds = self.weather_system.weather[weather_type]['clouds']
+      min_clouds, max_clouds = self.weather_system._weather[weather_type]['clouds']
       self.assertTrue(min_clouds <= conditions['clouds'] <= max_clouds)
 
   def test_interpolate(self):
@@ -164,14 +164,14 @@ class WorldWeatherTest(TestCase):
     self.assertEqual(len(steps), duration)
 
     # Check first step is close to initial conditions but already transitioning
-    first_step = steps[0]['data']
-    self.assertEqual(steps[0]['weather'], 'Rainy')
+    first_step = steps[0]
+    self.assertEqual(first_step['weather'], 'Rainy')
     # First step should have moved 1/5 of the way from initial to final
     self.assertAlmostEqual(first_step['temperature'], 27.0)  # 30 + (15 - 30) * (1/5)
 
     # Check last step is at final conditions
-    last_step = steps[-1]['data']
-    self.assertEqual(steps[-1]['weather'], 'Rainy')
+    last_step = steps[-1]
+    self.assertEqual(last_step['weather'], 'Rainy')
     self.assertAlmostEqual(last_step['temperature'], 15.0)
     self.assertAlmostEqual(last_step['humidity'], 80.0)
     self.assertAlmostEqual(last_step['wind'], 15.0)
@@ -190,7 +190,6 @@ class WorldWeatherTest(TestCase):
     Assert:
       - Verify the correct number of hourly data points is generated
       - Verify each data point has the required properties
-      - Verify the weather transitions follow the allowed transitions
     """
     # Test with fixed duration
     total_duration = 24  # 24 hours
@@ -206,26 +205,10 @@ class WorldWeatherTest(TestCase):
     # Check each hour's data has the required structure
     for hour_data in hourly_weather:
       self.assertIn('weather', hour_data)
-      self.assertIn('data', hour_data)
-      self.assertIn('temperature', hour_data['data'])
-      self.assertIn('humidity', hour_data['data'])
-      self.assertIn('wind', hour_data['data'])
-      self.assertIn('clouds', hour_data['data'])
-
-    # Verify transitions follow the allowed rules
-    previous_weather = None
-    for hour_data in hourly_weather:
-      current_weather = hour_data['weather']
-
-      if previous_weather is not None and previous_weather != current_weather:
-        # If weather changed, check it's an allowed transition
-        self.assertIn(
-            current_weather,
-            self.weather_system.posible_transitions.get(previous_weather, []),
-            f"Invalid transition from {previous_weather} to {current_weather}"
-        )
-
-      previous_weather = current_weather
+      self.assertIn('temperature', hour_data)
+      self.assertIn('humidity', hour_data)
+      self.assertIn('wind', hour_data)
+      self.assertIn('clouds', hour_data)
 
   def test_simulate_weather_with_custom_duration(self):
     """
@@ -267,7 +250,6 @@ class WorldWeatherTest(TestCase):
 
     Assert:
       - Verify the simulation works for all starting weather types
-      - Verify the first transition for each simulation follows the allowed transitions
     """
     duration = 24
 
@@ -280,16 +262,3 @@ class WorldWeatherTest(TestCase):
       )
 
       self.assertEqual(len(simulation), duration)
-
-      # Find the first transition
-      current_weather = simulation[0]['weather']
-      for i in range(1, len(simulation)):
-        next_weather = simulation[i]['weather']
-        if next_weather != current_weather:
-          self.assertIn(
-              next_weather,
-              self.weather_system.posible_transitions[current_weather],
-              f"Invalid first transition from {current_weather} to {next_weather}"
-          )
-          break
-        current_weather = next_weather

@@ -107,12 +107,12 @@ class WorldWeather:
     between different weather states randomly chosen from allowed possibilities.
 
     :param int total_duration: The total number of hours to simulate.
-    :param Weather last_weather: The initial weather state to start the simulation from. Defaults to 'Sunny'.
+    :param Weather last_weather: The initial weather state to start the simulation from. Defaults to ``Sunny``.
 
     :return: A list of dictionaries, where each dictionary represents the weather 
-             conditions for one hour. Each dictionary contains the 'weather' state 
-             (e.g., 'Cloudy') and a 'data' dictionary with 'temperature', 'humidity', 
-             'wind', and 'clouds' values for that hour.
+             conditions for one hour. Each dictionary contains the ``weather`` state 
+             (e.g., ``Cloudy``) and a ``data`` dictionary with ``temperature``, ``humidity``, 
+             ``wind``, and ``clouds`` values for that hour.
     """
     current_conditions = self._generate_weather(last_weather)
     remaining_period = total_duration

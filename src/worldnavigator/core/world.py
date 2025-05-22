@@ -13,8 +13,8 @@ class World:
   methods for adding, removing, and retrieving locations, as well as tracking characters
   within the world's locations.
 
-  The world automatically monitors population changes by subscribing to the 'character_added'
-  and 'character_removed' events from its locations.
+  The world automatically monitors population changes by subscribing to the ``character_added``
+  and ``character_removed`` events from its locations.
   """
 
   def __init__(self, *, name: str):
@@ -28,10 +28,16 @@ class World:
 
   @property
   def name(self) -> str:
+    """
+    Name of the world
+    """
     return self._name
 
   @property
   def locations(self) -> List['Location']:
+    """
+    A list with all the locations in the world
+    """
     return list(self._locations.values())
 
   #################################################
@@ -49,9 +55,21 @@ class World:
   #################################################
 
   def population(self) -> str:
+    """
+    Get a string with the number of characters in the world
+
+    :return: String saying how many characters are in the world
+    """
     return f'"{self._population}" characters'
 
   def add_location(self, location: 'Location') -> None:
+    """
+    Add a new location to the world
+
+    :param Location location: The new location to add
+
+    :raise DuplicatedLocationError: If the location is already in the world
+    """
     if location.name in self._locations:
       raise DuplicatedLocationError(f'Location "{location.name}" is already in the world.')
 
@@ -60,12 +78,24 @@ class World:
     self._locations[location.name] = location
 
   def remove_location(self, location_name: str) -> 'Location':
+    """
+    Remove some location with his name
+
+    :return: The removed location
+    :raise LocationNotFoundError: If the location is not found in the world
+    """
     if location_name not in self._locations:
       raise LocationNotFoundError(location_name)
 
     return self._locations.pop(location_name)
 
   def get_location(self, location_name: str) -> 'Location':
+    """
+    Get a location by it's name
+
+    :return: The location
+    :raise LocationNotFoundError: If the location is not found in the world
+    """
     if location_name not in self._locations:
       raise LocationNotFoundError(location_name)
 

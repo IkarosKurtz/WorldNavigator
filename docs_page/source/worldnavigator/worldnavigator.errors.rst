@@ -1,7 +1,13 @@
 Errors
 =============================
 
-All errors that can be raised by WorldNavigator.
+All possible exceptions that can be raised within the system.
+
+.. automodule:: worldnavigator.errors.character_already_present
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 
 .. automodule:: worldnavigator.errors.character_not_found
    :members:

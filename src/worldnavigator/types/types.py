@@ -2,6 +2,16 @@ from typing import Literal
 
 
 BASIC_TYPES = (int, float, str, bool)
+"""
+Basic types that can be used in the :class:`Params` class.
+
+For now only this basic types are allowed, but maybe in the future there will be more.
+
+- ``int``: An integer number.
+- ``float``: A floating-point number.
+- ``str``: A string.
+- ``bool``: A boolean value.
+"""
 
 Weather = Literal[
   'Sunny',

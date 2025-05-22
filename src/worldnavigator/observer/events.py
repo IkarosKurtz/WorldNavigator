@@ -14,7 +14,10 @@ This type is a literal that restricts the event names to two specific strings:
 
 class CharacterAddedEvent(TypedDict):
   """
-  A dictionary representing the event data for when a character is added.
+  Values of the listener for ``character_added`` event, is sended in this order:
+
+  - name: str
+  - location: str
   """
   name: str
   location: str
@@ -22,7 +25,10 @@ class CharacterAddedEvent(TypedDict):
 
 class CharacterRemovedEvent(TypedDict):
   """
-  A dictionary representing the event data for when a character is removed.
+  Values of the listener for ``character_removed`` event, is sended in this order:
+
+  - name: str
+  - location: str
   """
   name: str
   location: str

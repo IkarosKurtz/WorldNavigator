@@ -114,6 +114,5 @@ To export your world:
 This JSON file contains all the information about your world and can be imported into your game to be used with the :class:`WorldParser <worldnavigator.core.WorldParser>` class.
 
 
-
 .. image:: ../../images/export.png
   :alt: Export World Interface

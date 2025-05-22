@@ -1,8 +1,6 @@
 Decorators
 ==========
 
-Decorators used in WorldNavigator.
-
 
 Evaluate Events
 ---------------
