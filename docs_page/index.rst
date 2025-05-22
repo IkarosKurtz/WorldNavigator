@@ -38,4 +38,4 @@ Main features:
    :maxdepth: 1
    :caption: Editor
    
-   source/worldnavigator_editor
+   source/editor/worldnavigator_editor

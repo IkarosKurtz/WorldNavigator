@@ -1,0 +1,10 @@
+.images-side-by-side {
+  display: flex;
+  gap: 10px;
+}
+
+.col-images {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
