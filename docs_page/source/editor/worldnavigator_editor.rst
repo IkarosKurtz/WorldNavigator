@@ -6,7 +6,7 @@ You can access it here: `WorldNavigator Editor`_.
 
 .. _WorldNavigator Editor: https://worldnavigator-editor.streamlit.app/
 
-.. warning:: 
+.. danger:: 
 
   Currently, there is no option to delete a location once created. The only workaround is to reload the page. This issue will be fixed in a future update.
 
@@ -111,7 +111,9 @@ To export your world:
 2. Click the export button
 3. Download the generated JSON file
 
-This JSON file contains all the information about your world and can be imported into your game.
+This JSON file contains all the information about your world and can be imported into your game to be used with the :class:`WorldParser <worldnavigator.core.WorldParser>` class.
+
+
 
 .. image:: ../../images/export.png
   :alt: Export World Interface

@@ -8,3 +8,17 @@ The Weather module provides a comprehensive system for simulating various weathe
    :show-inheritance:
    :undoc-members:
 
+
+Types
+-----
+
+.. autodata:: worldnavigator.types.types.Weather
+   :annotation:
+
+.. autoclass:: worldnavigator.types.typed_dicts.WeatherConditionsDict
+   :members:
+   :undoc-members:
+
+.. autoclass:: worldnavigator.types.typed_dicts.GeneratedWeatherDict
+   :members:
+   :undoc-members:

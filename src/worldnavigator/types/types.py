@@ -36,7 +36,7 @@ class Params:
       hear: Annotated[str, Params(time=float, topic=str)]
 
 
-  :param **params: Arbitrary keyword arguments representing parameters and their types.
+  :param dict[str, type] params: Arbitrary keyword arguments representing parameters and their types.
   """
 
   def __init__(self, **params):
