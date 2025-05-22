@@ -5,9 +5,7 @@ description = "A tool to help you navigate through a simulated world."
 readme = "README.md"
 authors = [{ name = "IkarosKurtz", email = "ikaroskurtz@gmail.com" }]
 requires-python = ">=3.11"
-dependencies = [
-    "rich>=14.0.0",
-]
+dependencies = ["rich>=14.0.0"]
 
 [build-system]
 requires = ["hatchling"]
@@ -21,5 +19,6 @@ dev = [
     "sphinx>=8.2.3",
     "sphinx-autoapi>=3.6.0",
     "sphinx-autobuild>=2024.10.3",
+    "sphinx-copybutton>=0.5.2",
     "sphinx-rtd-theme>=3.0.2",
 ]
