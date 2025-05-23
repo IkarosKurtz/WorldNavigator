@@ -1,7 +1,7 @@
 Types
 =====
 
-All types in WorldNavigator.
+Some types used in WorldNavigator.
 
 .. automodule:: worldnavigator.types.typed_dicts
    :members:

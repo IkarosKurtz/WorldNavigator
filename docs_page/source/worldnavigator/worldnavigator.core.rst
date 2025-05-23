@@ -27,6 +27,8 @@ WorldObject
    :show-inheritance:
    :undoc-members:
 
+Examples
+
 .. code-block:: python
 
    from typing import Annotated, Literal
