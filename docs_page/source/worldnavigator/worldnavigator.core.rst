@@ -19,6 +19,119 @@ World Parser
    :show-inheritance:
    :undoc-members:
 
+Character
+------------
+
+.. automodule:: worldnavigator.core.character
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Examples in Python:
+
+  .. code-block:: python
+
+      from typing import TypedDict
+      from worldnavigator.core import GameCharacter
+
+
+      # This class is optional, but it's recommended to use it to avoid typos,
+      # probably doesn't work in Ren'Py
+      class MyData(TypedDict):
+         inventory: list[str]
+         health: int
+         damage: int
+
+
+      my_data: MyData = {
+         'damage': 10,
+         'health': 100,
+         'inventory': ['sword', 'shield']
+      }
+
+      human = GameCharacter[MyData]("Human", data=my_data)
+      # If you're not using a TypedDict, you can remove the brackets
+      # human = GameCharacter("Human", data=my_data)
+
+      print(f"Character name: {human.name}")
+      print(f"Health: {human.data['health']}")
+      print(f"Damage: {human.data['damage']}")
+      print(f"Inventory: {human.data['inventory']}")
+
+  Output:
+
+  .. code-block:: text
+
+      > Character name: Human
+      > Health: 100
+      > Damage: 10
+      > Inventory: ['sword', 'shield']
+
+  .. code-block:: python
+
+      from typing import Callable, TypedDict
+      from worldnavigator.core import GameCharacter
+
+
+      # This class is optional, but it's recommended to use it to avoid typos,
+      # probably doesn't work in Ren'Py
+      class MyData(TypedDict):
+         inventory: list[str]
+         health: int
+         damage: int
+
+         print_stats: Callable[[], None]
+
+
+      def print_stats(character: GameCharacter[MyData]):
+         print(f"Character name: {character.name}")
+         print(f"Health: {character.data['health']}")
+         print(f"Damage: {character.data['damage']}")
+         print(f"Inventory: {character.data['inventory']}")
+
+
+      my_data: MyData = {
+         'damage': 10,
+         'health': 100,
+         'inventory': ['sword', 'shield'],
+         'print_stats': print_stats
+      }
+
+      human = GameCharacter[MyData]("Human", data=my_data)
+      # If you're not using a TypedDict, you can remove the brackets
+      # human = GameCharacter("Human", data=my_data)
+
+      human.print_stats()
+
+  Output:
+
+  .. code-block:: text
+
+      > Character name: Human
+      > Health: 100
+      > Damage: 10
+      > Inventory: ['sword', 'shield']
+
+Example in Ren'Py:
+
+.. code-block:: python
+
+   define human = GameCharacter("Human")
+
+   label start:
+
+      human "Hello, world!"
+
+.. code-block:: text
+
+   define human = GameCharacter("Human", data={"inventory": ["sword", "shield"]})
+
+   label start:
+
+      $ inventory = ', '.join(human.data["inventory"])
+
+      human "I have stored: [inventory]"
+
 WorldObject
 -----------
 

@@ -3,6 +3,7 @@ Location
 
 .. autoclass:: worldnavigator.locations.base_location.Location
    :members:
+   :special-members: __call__
    :show-inheritance:
    :undoc-members:
 
@@ -41,9 +42,6 @@ Class to manage background for locations. Store backgrounds and provide a simple
    from worldnavigator.locations import Location
 
    shop = Location(
-   from worldnavigator.locations import Location
-
-   shop = Location(
       name='Shop',
       backgrounds={
         'day': 'day_bg',
@@ -61,9 +59,6 @@ Class to manage background for locations. Store backgrounds and provide a simple
 
 .. code-block:: python
 
-   from worldnavigator.locations import Location
-
-   shop = Location(
    from worldnavigator.locations import Location
 
    shop = Location(
