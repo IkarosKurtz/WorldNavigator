@@ -1,8 +1,11 @@
 from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError
-from typing import TYPE_CHECKING, List, Dict
+from typing import TYPE_CHECKING, List, Dict, Union
+
+from worldnavigator.errors.character_already_present import CharacterAlreadyPresentError
 
 if TYPE_CHECKING:
   from worldnavigator.locations.base_location import Location
+  from worldnavigator.core.character import GameCharacter
 
 
 class World:
@@ -20,7 +23,9 @@ class World:
   def __init__(self, *, name: str):
     self._name = name
     self._locations: Dict[str, 'Location'] = {}
+    self._total_characters: list['GameCharacter'] = []
     self._population = 0
+    self._character_entrypoint: 'Location' = None
 
   #################################################
   ################### Properties ##################
@@ -45,9 +50,11 @@ class World:
   #################################################
 
   def _character_added(self, name: str, location: str):
+    print(f'Character "{name}" added to "{location}"')
     self._population += 1
 
   def _character_removed(self, name: str, location: str):
+    print(f'Character "{name}" removed from "{location}"')
     self._population -= 1
 
   #################################################
@@ -115,3 +122,66 @@ class World:
         return f'"{character}" is in "{location.name}"'
 
     return f'"{character}" is not found in the world.'
+
+  def character_entrypoint(self, location: Union[str, 'Location']) -> None:
+    """
+    Set spawn point for characters, this means when you use :py:meth:`~World.add_character` it will be moved to this location, if not set, you can't add characters.
+
+    :param Union[str, Location] location: The location to set as the spawn point.
+
+    :raises LocationNotFoundError: If the location is not found in the world.
+    """
+    if isinstance(location, str):
+      location = self.get_location(location)
+
+    self._character_entrypoint = location
+
+  def add_character(self, character: 'GameCharacter') -> None:
+    """
+    Add a character to the world, the character will be on the ``character_entrypoint`` location, use :py:meth:`~World.character_entrypoint`.
+
+    :param GameCharacter character: The character to add.
+
+    :raises ValueError: If the character entrypoint is not set.
+    :raises CharacterAlreadyPresentError: If the character is already in the world.
+    """
+    if self._character_entrypoint is None:
+      raise ValueError('No character entrypoint defined')
+
+    # We don't want to add the same character twice
+    if character in self._total_characters:
+      raise CharacterAlreadyPresentError(f'Character "{character.name}" is already in the world.')
+
+    self._total_characters.append(character)
+    self._character_entrypoint.add_character(character)
+
+  def move_character(self, character: 'GameCharacter', location: Union[str, 'Location']) -> None:
+    """
+    Use this method to move a character to a different location. This is the recommended way to move characters.
+
+    .. attention:: 
+
+      You can also do it in the old way, that consists in get the location you want
+      to move and the current location, and use :py:meth:`~worldnavigator.locations.base_location.Location.add_character`
+      for the current location and :py:meth:`~worldnavigator.locations.base_location.Location.remove_character` for the new one.
+
+    :param GameCharacter character: The character to move.
+    :param Union[str, Location] location: The location to move the character to.
+
+    :raises LocationNotFoundError: If the location is not found in the world.
+    :raises CharacterAlreadyPresentError: If the character is already in the location.
+    """
+    if isinstance(location, str):
+      location = self.get_location(location)
+
+    last_location = character.current_location
+
+    if last_location is not None:
+      last_location = self.get_location(last_location)
+      last_location.remove_character(character)
+
+    # Why do you want to move a character to the same location?
+    if last_location.name == location.name:
+      raise CharacterAlreadyPresentError(f'Character "{character.name}" is already in "{location.name}"')
+
+    location.add_character(character)

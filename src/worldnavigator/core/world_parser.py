@@ -1,4 +1,5 @@
 import json as JSON
+from typing import Union
 
 from worldnavigator.core.world import World
 from worldnavigator.locations.base_location import Location
@@ -14,16 +15,16 @@ class WorldParser:
   and create a fully connected World object with properly configured Location objects.
 
   Currently supported formats:
-    - SceneGraph: A JSON format with locations and connections between them
-    - WorldNest: (In development) An alternative world description format
+    - **SceneGraph**: A JSON format with locations and connections between them
+    - **WorldNest**: (In development) An alternative world description format
   """
 
   @classmethod
-  def scene_graph_parser(cls, json: dict | str) -> World:
+  def scene_graph_parser(cls, json: Union[dict, str]) -> World:
     """
     Parse a JSON with SceneGraph format.
 
-    :param dict | str json: The JSON string to parse or the path to the JSON file.
+    :param Union[dict, str] json: The JSON string to parse or the path to the JSON file.
     """
     if isinstance(json, str):
       with open(json, 'r', encoding='utf-8') as f:
@@ -72,10 +73,10 @@ class WorldParser:
     return world
 
   @classmethod
-  def world_nest_parser(cls, json: dict | str):
+  def world_nest_parser(cls, json: Union[dict, str]):
     """
     Parse a JSON with WorldNest format.
 
-    :param dict json: The JSON string to parse.
+    :param Union[dict, str] json: The JSON string to parse or the path to the JSON file.
     """
     pass

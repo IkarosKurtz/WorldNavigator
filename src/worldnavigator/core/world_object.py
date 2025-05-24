@@ -18,8 +18,8 @@ class WorldObject(Generic[EventType, EventName]):
   It provides a flexible interaction mechanism that allows defining custom interactions for each object.
 
   Generic Parameter:
-    - EventType: Class with the definitions of the events for the specific WorldObject implementation.
-    - EventName: A Literal type with the possible interactions for the specific WorldObject implementation.
+    - **EventType**: Class with the definitions of the events for the specific WorldObject implementation.
+    - **EventName**: A Literal type with the possible interactions for the specific WorldObject implementation.
   """
 
   def __init__(self, name: str):
@@ -52,7 +52,7 @@ class WorldObject(Generic[EventType, EventName]):
 
   def _define_hints(self) -> None:
     """
-    Extract all the data from EventType type, is used for data validation in functions and payloads 
+    Extract all the data from EventType type, is used for data validation in functions and payloads
     """
     if not hasattr(self, 'hints'):
       self._V_type = get_args(self.__orig_class__)[0]

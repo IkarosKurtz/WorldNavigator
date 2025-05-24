@@ -5,6 +5,7 @@ from worldnavigator.observer import Observer
 from worldnavigator.types.typed_dicts import BackgroundsDict
 
 if TYPE_CHECKING:
+  from worldnavigator.core.character import GameCharacter
   from worldnavigator.core.world_object import WorldObject
 
 
@@ -95,11 +96,9 @@ class Location(Observer):
                *,
                name: str,
                backgrounds: BackgroundsDict,
-               objects: Optional[Dict[str, 'WorldObject']] = None,
+               objects: Optional[dict[str, 'WorldObject']] = None,
                is_indoor: bool = False):
     """
-    Initializes the Location instance with the provided parameters.
-
     :param str name: The name of the location.
     :param BackgroundsDict backgrounds: A dictionary containing the backgrounds for different times of day.
     :param Optional[Dict[str, WorldObject]] objects: A dictionary of objects present in the location (optional).
@@ -114,11 +113,11 @@ class Location(Observer):
       raise MissingDayBackgroundError(self._name)
 
     self._backgrounds = LocationBackground(backgrounds)
-    self._objects: Dict[str, 'WorldObject'] = objects if objects is not None else {}
+    self._objects: dict[str, 'WorldObject'] = objects if objects is not None else {}
     self._is_indoor = is_indoor
 
-    self._connections: Dict[str, 'Location'] = {}
-    self._characters: List[str] = []
+    self._connections: dict[str, 'Location'] = {}
+    self._characters: list['GameCharacter'] = []
 
   def __str__(self) -> str:
     return f'Location("{self.name}", backgrounds="{self.backgrounds}", objects="{self.objects}", is_indoor="{self.is_indoor}")'
@@ -156,7 +155,7 @@ class Location(Observer):
     return self._connections
 
   @property
-  def characters(self) -> List[str]:
+  def characters(self) -> List['GameCharacter']:
     """Returns the characters present in the location."""
     return self._characters
 
@@ -169,9 +168,9 @@ class Location(Observer):
     Retrieves a connected location by name.
 
     :param str location_name: The name of the location to retrieve.
-    :raises LocationNotFoundError: If the location is not found in the connections.
 
     :return: The connected Location instance.
+    :raises LocationNotFoundError: If the location is not found in the connections.
     """
     if location_name not in self._connections:
       raise LocationNotFoundError(location_name)
@@ -240,31 +239,34 @@ class Location(Observer):
     """
     return self._objects[obj_name]
 
-  def add_character(self, character: str) -> None:
+  def add_character(self, character: 'GameCharacter') -> None:
     """
     Adds a character to the location.
 
-    :param str character: The name of the character to add.
+    :param GameCharacter character: The Character to add.
 
     :raises CharacterAlreadyPresentError: If the character is already in the location.
     """
     if character in self._characters:
-      raise CharacterAlreadyPresentError(f'Character "{character}" is already in "{self.name}"')
+      raise CharacterAlreadyPresentError(f'Character "{character.name}" is already in "{self.name}"')
 
-    self.trigger('character_added', {'name': character, 'location': self.name})
+    character.current_location = self.name
+
+    self.trigger('character_added', {'name': character.name, 'location': self.name})
     self._characters.append(character)
 
-  def remove_character(self, character: str) -> None:
+  def remove_character(self, character: 'GameCharacter') -> None:
     """
     Removes a character from the location.
 
-    :param str character: The name of the character to remove.
+    :param GameCharacter character: The Character to remove.
+
     :raises CharacterNotFoundError: If the character is not found in the location.
     """
     if character not in self._characters:
       raise CharacterNotFoundError(f'Character "{character}" is not in "{self.name}"')
 
-    self.trigger('character_removed', {'name': character, 'location': self.name})
+    self.trigger('character_removed', {'name': character.name, 'location': self.name})
     self._characters.remove(character)
 
   def who_is_here(self) -> str:
@@ -273,4 +275,4 @@ class Location(Observer):
 
     :return: A comma-separated string of character names.
     """
-    return ', '.join(self._characters)
+    return ', '.join([character.name for character in self._characters])
