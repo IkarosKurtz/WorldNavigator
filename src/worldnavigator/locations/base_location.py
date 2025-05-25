@@ -264,7 +264,7 @@ class Location(Observer):
     :raises CharacterNotFoundError: If the character is not found in the location.
     """
     if character not in self._characters:
-      raise CharacterNotFoundError(f'Character "{character}" is not in "{self.name}"')
+      raise CharacterNotFoundError(f'Character "{character.name}" is not in "{self.name}"')
 
     self.trigger('character_removed', {'name': character.name, 'location': self.name})
     self._characters.remove(character)

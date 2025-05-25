@@ -111,20 +111,20 @@ class World:
 
     return self._locations[location_name]
 
-  def where_is(self, character: str) -> str:
+  def where_is(self, character: 'GameCharacter') -> str:
     """
     Determines where a specific character is located.
 
-    :param str character: The character to find the location of.
+    :param GameCharacter character: The character to find the location of.
 
     :return: The location of the character.
     """
 
     for location in self._locations.values():
       if character in location.characters:
-        return f'"{character}" is in "{location.name}"'
+        return f'"{character.name}" is in "{location.name}"'
 
-    return f'"{character}" is not found in the world.'
+    return f'"{character.name}" is not found in the world.'
 
   def character_entrypoint(self, location: Union[str, 'Location']) -> None:
     """

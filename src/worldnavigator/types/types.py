@@ -48,9 +48,10 @@ class Params:
     class MyEvents:
       hear: Annotated[str, Params(time=float, topic=str)]
 
-  .. attention:: 
+  .. attention::
 
     Only :py:data:`~worldnavigator.types.types.BASIC_TYPES` are allowed as parameter types.
+
   """
 
   def __init__(self, **params):

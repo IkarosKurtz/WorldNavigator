@@ -38,6 +38,10 @@ class GameCharacter(Generic[ExtraData]):
     self._current_location: str = None
 
     self._data: ExtraData = {}
+
+    if data is None:
+      return
+
     for key, value in data.items():
       if isinstance(value, Callable):
         setattr(self, key, MethodType(value, self))
@@ -87,3 +91,15 @@ class GameCharacter(Generic[ExtraData]):
       return
 
     return getattr(self.c, item)
+
+  def __eq__(self, value: object) -> bool:
+    if not isinstance(value, GameCharacter):
+      return False
+
+    return self.name == value.name
+
+  def __str__(self):
+    return f'GameCharacter(name="{self.name}", data="{self.data}")'
+
+  def __repr__(self):
+    return self.__str__()
