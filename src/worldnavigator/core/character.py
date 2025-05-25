@@ -82,13 +82,13 @@ class GameCharacter(Generic[ExtraData]):
         human "Hello, world!"
     """
     if self.c is None:
-      return
+      return self(*args, **kwargs)
 
     return self.c(*args, **kwargs)
 
   def __getattr__(self, item):
     if self.c is None:
-      return
+      return getattr(self, item)
 
     return getattr(self.c, item)
 
