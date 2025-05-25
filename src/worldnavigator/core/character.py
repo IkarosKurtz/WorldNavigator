@@ -30,7 +30,7 @@ class GameCharacter(Generic[ExtraData]):
 
   def __init__(self, name: str, data: Optional[ExtraData] = None, **kwargs: dict[str, Any]):
     if 'renpy' in globals():
-      self.c = Character(name, **kwargs)
+      self.c = Character(name, **kwargs)  # type: ignore
     else:
       self.name: str = name
       self.c = None

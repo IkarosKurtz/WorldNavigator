@@ -21,6 +21,9 @@ class World:
   """
 
   def __init__(self, *, name: str):
+    """
+    :param str name: The name of the world.
+    """
     self._name = name
     self._locations: Dict[str, 'Location'] = {}
     self._total_characters: list['GameCharacter'] = []

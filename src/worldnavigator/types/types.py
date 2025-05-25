@@ -38,6 +38,9 @@ class Params:
   This class allows the definition of parameters with their types for event handling
   in a structured way. It can be used to annotate event attributes in classes.
 
+  This constructor accepts any number of keyword arguments, which are stored as
+  a dictionary for later retrieval.
+
   .. code-block:: python
 
     from worldnavigator.types import Params
@@ -45,18 +48,14 @@ class Params:
     class MyEvents:
       hear: Annotated[str, Params(time=float, topic=str)]
 
+  .. attention:: 
 
-  :param dict[str, type] params: Arbitrary keyword arguments representing parameters and their types.
+    Only :py:data:`~worldnavigator.types.types.BASIC_TYPES` are allowed as parameter types.
   """
 
   def __init__(self, **params):
     """
-    Initializes the Params class with the given parameters.
-
-    This constructor accepts any number of keyword arguments, which are stored as
-    a dictionary for later retrieval.
-
-    :param **params: Arbitrary keyword arguments representing parameters and their types.
+    :param dict[str, Union[Tuple[type, str], type]] params: Arbitrary keyword arguments representing parameters and their types.
     """
     self._params = params
 

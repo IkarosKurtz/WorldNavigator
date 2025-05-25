@@ -23,6 +23,9 @@ class WorldObject(Generic[EventType, EventName]):
   """
 
   def __init__(self, name: str):
+    """
+    :param str name: The name of the object.
+    """
     self._name = name
     self._interactions_func: dict[str, Callable] = {}
 
