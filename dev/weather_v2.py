@@ -29,6 +29,7 @@ NIGHT_DRY_FACTOR = 0.2
 class WeatherNode:
   connected_to: str
   wind: int = field(default=MIN_WIND)
+  wind_vec: list[float] = field(default=list((0, 0)))
   temperature: int = field(default=20)
   humidity: float = field(default_factory=lambda: random.uniform(30, 50))
   # humidity: float = field(default_factory=lambda: random.randint(20, 35))

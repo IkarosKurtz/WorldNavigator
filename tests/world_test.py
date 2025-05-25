@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from worldnavigator.core import World
+from worldnavigator.core.character import GameCharacter
 from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError
 from worldnavigator.locations import Location
 
@@ -181,38 +182,130 @@ class WorldTest(TestCase):
     # Initial population should be 0
     self.assertEqual(world.population(), '"0" characters')
 
+    student1 = GameCharacter("Student1")
+    teacher = GameCharacter("Teacher")
+    student2 = GameCharacter("Student2")
+
     # Add characters to locations
-    school.add_character('Student1')
-    school.add_character('Teacher')
-    club_room.add_character('Student2')
+    school.add_character(student1)
+    school.add_character(teacher)
+    club_room.add_character(student2)
 
     # Population should be 3
     self.assertEqual(world.population(), '"3" characters')
 
     # Raise error when adding duplicate character
     with self.assertRaises(CharacterAlreadyPresentError) as context:
-      school.add_character('Student1')
+      school.add_character(student1)
 
     self.assertEqual(str(context.exception), 'Character "Student1" is already in "School"')
 
     # Remove a character
-    school.remove_character('Student1')
+    school.remove_character(student1)
 
     # Population should be 2
     self.assertEqual(world.population(), '"2" characters')
 
     # Remove all remaining characters
-    school.remove_character('Teacher')
-    club_room.remove_character('Student2')
+    school.remove_character(teacher)
+    club_room.remove_character(student2)
 
     # Population should be 0
     self.assertEqual(world.population(), '"0" characters')
 
     # Raise error when removing non-existent character
     with self.assertRaises(CharacterNotFoundError) as context:
-      club_room.remove_character('Student2')
+      club_room.remove_character(student2)
 
     self.assertEqual(str(context.exception), 'Character "Student2" is not in "Club Room"')
+
+  def test_character_movement(self):
+    """
+    Test moving characters between locations using the move_character method.
+
+    Arrange:
+      - Create a new world
+      - Add locations to the world
+      - Add characters to locations
+      - Set up the character entry point
+
+    Act:
+      - Move characters between locations using the move_character method
+
+    Assert:
+      - Verify characters are correctly moved between locations
+      - Verify character's current_location property is updated
+      - Verify trying to move a character to its current location raises CharacterAlreadyPresentError
+      - Verify trying to move a character to a non-existent location raises LocationNotFoundError
+    """
+    world = World(name='Nexis')
+
+    # Create and add test locations
+    school = Location(
+        name='School',
+        backgrounds={'day': 'bg school'},
+        is_indoor=False
+    )
+
+    club_room = Location(
+        name='Club Room',
+        backgrounds={'day': 'bg club_day'},
+        is_indoor=True
+    )
+
+    library = Location(
+        name='Library',
+        backgrounds={'day': 'bg library'},
+        is_indoor=True
+    )
+
+    world.add_location(school)
+    world.add_location(club_room)
+    world.add_location(library)
+
+    # Set character entry point
+    world.character_entrypoint(school)
+
+    # Create and add characters
+    student1 = GameCharacter("Student1")
+    teacher = GameCharacter("Teacher")
+
+    # Add characters to the world
+    world.add_character(student1)
+    world.add_character(teacher)
+
+    # Initial location check
+    self.assertEqual(student1.current_location, 'School')
+    self.assertEqual(teacher.current_location, 'School')
+    self.assertEqual(world.where_is(student1), '"Student1" is in "School"')
+
+    # Move student1 to club_room
+    world.move_character(student1, 'Club Room')
+
+    # Verify student1 was moved to club_room
+    self.assertEqual(student1.current_location, 'Club Room')
+    self.assertEqual(world.where_is(student1), '"Student1" is in "Club Room"')
+
+    # Move student1 to library
+    world.move_character(student1, library)
+
+    # Verify student1 was moved to library
+    self.assertEqual(student1.current_location, 'Library')
+    self.assertEqual(world.where_is(student1), '"Student1" is in "Library"')
+
+    # Verify teacher is still in school
+    self.assertEqual(teacher.current_location, 'School')
+    self.assertEqual(world.where_is(teacher), '"Teacher" is in "School"')
+
+    # Test moving to non-existent location
+    with self.assertRaises(LocationNotFoundError):
+      world.move_character(student1, 'Non-existent Location')
+
+    # Test moving to current location (should raise error)
+    with self.assertRaises(CharacterAlreadyPresentError) as context:
+      world.move_character(student1, library)
+
+    self.assertEqual(str(context.exception), 'Character "Student1" is already in "Library"')
 
   def test_where_is_character(self):
     """
@@ -249,22 +342,28 @@ class WorldTest(TestCase):
     world.add_location(school)
     world.add_location(club_room)
 
+    student1 = GameCharacter("Student1")
+    teacher = GameCharacter("Teacher")
+    student2 = GameCharacter("Student2")
+
     # Add characters to locations
-    school.add_character('Student1')
-    school.add_character('Teacher')
-    club_room.add_character('Student2')
+    school.add_character(student1)
+    school.add_character(teacher)
+    club_room.add_character(student2)
 
     # Test finding characters
-    self.assertEqual(world.where_is('Student1'), '"Student1" is in "School"')
-    self.assertEqual(world.where_is('Teacher'), '"Teacher" is in "School"')
-    self.assertEqual(world.where_is('Student2'), '"Student2" is in "Club Room"')
+    self.assertEqual(world.where_is(student1), '"Student1" is in "School"')
+    self.assertEqual(world.where_is(teacher), '"Teacher" is in "School"')
+    self.assertEqual(world.where_is(student2), '"Student2" is in "Club Room"')
 
-    # Test finding non-existent character
-    self.assertEqual(world.where_is('Unknown'), '"Unknown" is not found in the world.')
+    unknown = GameCharacter("Unknown")
+
+    # Test finding non-spawned character
+    self.assertEqual(world.where_is(unknown), '"Unknown" is not found in the world.')
 
     # Test character movement
-    school.remove_character('Student1')
-    club_room.add_character('Student1')
+    school.remove_character(student1)
+    club_room.add_character(student1)
 
     # Verify location was updated
-    self.assertEqual(world.where_is('Student1'), '"Student1" is in "Club Room"')
+    self.assertEqual(world.where_is(student1), '"Student1" is in "Club Room"')

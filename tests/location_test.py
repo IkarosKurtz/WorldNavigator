@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from worldnavigator.core.character import GameCharacter
 from worldnavigator.locations.base_location import Location
 from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError, MissingDayBackgroundError
 
@@ -139,33 +140,38 @@ class LocationTest(TestCase):
     self.assertEqual(len(cafeteria.characters), 0)
     self.assertEqual(cafeteria.who_is_here(), '')
 
+    student1 = GameCharacter("Student1")
+    teacher = GameCharacter("Teacher")
+
     # Test adding characters
-    cafeteria.add_character("Student1")
-    cafeteria.add_character("Teacher")
+    cafeteria.add_character(student1)
+    cafeteria.add_character(teacher)
 
     self.assertEqual(len(cafeteria.characters), 2)
-    self.assertIn("Student1", cafeteria.characters)
-    self.assertIn("Teacher", cafeteria.characters)
+    self.assertIn(student1, cafeteria.characters)
+    self.assertIn(teacher, cafeteria.characters)
 
     # Test who_is_here
     self.assertEqual(cafeteria.who_is_here(), "Student1, Teacher")
 
     # Test adding duplicate character
     with self.assertRaises(CharacterAlreadyPresentError) as context:
-      cafeteria.add_character("Student1")
+      cafeteria.add_character(student1)
 
     self.assertEqual(str(context.exception), 'Character "Student1" is already in "Cafeteria"')
 
     # Test removing character
-    cafeteria.remove_character("Student1")
+    cafeteria.remove_character(student1)
 
     self.assertEqual(len(cafeteria.characters), 1)
-    self.assertNotIn("Student1", cafeteria.characters)
-    self.assertIn("Teacher", cafeteria.characters)
+    self.assertNotIn(student1, cafeteria.characters)
+    self.assertIn(teacher, cafeteria.characters)
+
+    student2 = GameCharacter("Student2")
 
     # Test removing non-existent character
     with self.assertRaises(CharacterNotFoundError) as context:
-      cafeteria.remove_character("Student2")
+      cafeteria.remove_character(student2)
 
     self.assertEqual(str(context.exception), 'Character "Student2" is not in "Cafeteria"')
 
