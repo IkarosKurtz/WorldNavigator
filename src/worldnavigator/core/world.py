@@ -158,7 +158,7 @@ class World:
     self._total_characters.append(character)
     self._character_entrypoint.add_character(character)
 
-  def move_character(self, character: 'GameCharacter', location: Union[str, 'Location']) -> None:
+  def move_character(self, character: 'GameCharacter', location: Union[str, 'Location']) -> bool:
     """
     Use this method to move a character to a different location. This is the recommended way to move characters.
 
@@ -171,6 +171,7 @@ class World:
     :param GameCharacter character: The character to move.
     :param Union[str, Location] location: The location to move the character to.
 
+    :return: True if the character was moved, False if the character was not moved.
     :raises LocationNotFoundError: If the location is not found in the world.
     :raises CharacterAlreadyPresentError: If the character is already in the location.
     """
@@ -178,7 +179,7 @@ class World:
       location = self.get_location(location)
 
     if location.condition_pipeline.handle().denied:
-      return
+      return False
 
     last_location = character.current_location
 
@@ -192,3 +193,4 @@ class World:
     last_location.remove_character(character)
 
     location.add_character(character)
+    return True
