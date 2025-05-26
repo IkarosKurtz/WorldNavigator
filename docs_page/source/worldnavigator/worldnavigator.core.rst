@@ -206,60 +206,94 @@ A condition pipeline is the head of the conditions that will check all of the co
 Use this pipeline is easy, for :class:`Location <worldnavigator.locations.base_location.Location>` class, you can do this:
 ``location.condition_pipeline(<your conditions>)``, and it will check all of the conditions before player is moved to that location.
 
-Below is an example of how to use it, in a raw code, but just replace ``pipe`` with ``location.condition_pipeline``
+Below is an example of how to use it, in a raw code, but just replace ``pipe`` with ``location.condition_pipeline``.
+
+To create a custom condition, you need to inherit from :class:`BaseCondition <worldnavigator.types.types.BaseCondition>` and implement the ``handle`` method, this method will receive a :class:`ConditionPipelineContext <worldnavigator.types.types.ConditionPipelineContext>` object, that contains the current context of the pipeline.
+
+.. code-block:: python
+
+   from worldnavigator.types import BaseCondition
+
+   current_wheatear = 'sunny'
+
+   class CustomCondition(BaseCondition):
+      # context = ConditionPipelineContext
+      def handle(self, context):
+         if current_wheatear == 'sunny':
+            # This will execute the next condition in the pipeline
+            self.handle_next(context)
+            return
+
+         # This will stop the pipeline from executing the next condition
+         # basically, will brake the chain of conditions
+         context.denied = True
+
+This custom condition can be used in a location (and for now is the only way to use it), see the examples in :ref:`here <pipeline_examples>`.
 
 .. automodule:: worldnavigator.core.condition_pipeline
    :members:
    :show-inheritance:
    :undoc-members:
 
+.. _pipeline_examples:
+
 Example in Python
 *****************
 
 .. code-block:: python
 
-   from worldnavigator.core import ConditionalPipeline
+   from typing import TypedDict
+   from worldnavigator.core import GameCharacter, WorldParser
    from worldnavigator.types import BaseCondition
+   from worldnavigator.types.types import ConditionPipelineContext
 
 
-   class WeatherCondition(BaseCondition):
-      def handle(self):
-         print('Weather Condition')
-
-         self.handle_next()
+   # This class is optional, but it's recommended to use it to avoid typos, probably doesn't work in Ren'Py
+   class MyData(TypedDict):
+      inventory: list[str]
 
 
-   class LocationCondition(BaseCondition):
-      def handle(self):
-         print('Location Condition')
+   my_data: MyData = {
+      'inventory': []
+   }
 
-         self.handle_next()
+   human = GameCharacter[MyData]("Human", data=my_data)
 
-
-   class ItemCondition(BaseCondition):
-      def handle(self):
-         print('Item Condition')
-
-         self.handle_next()
+   world = WorldParser.scene_graph_parser(f'./examples/worlds/nexis.world.json')
 
 
-   pipe = ConditionalPipeline()
+   class HasSword(BaseCondition):
+      def handle(self, context: ConditionPipelineContext):
+         if 'student_card' in human.data['inventory']:
+            self.handle_next(context)
+            return
 
-   pipe(
-      WeatherCondition(),
-      LocationCondition(),
-      ItemCondition()
+         context.denied = True
+
+
+   world.character_entrypoint('Main Entrance')
+   world.add_character(human)
+   print(f'Current location: {human.current_location}')
+
+   school = world.get_location('School')
+
+   school.condition_pipeline(
+      HasSword()
    )
 
-   pipe.handle()
+   was_moved = world.move_character(human, school)
+   print(f'Was moved: {was_moved}')
+
+   print(f'Current location: {human.current_location}')
+
 
 Output:
 
 .. code-block:: text
 
-   > Weather Condition
-   > Location Condition
-   > Item Condition
+   > Current location: Main Entrance
+   > Was moved: False
+   > Current location: Main Entrance
 
 Example in Ren'Py
 *****************
