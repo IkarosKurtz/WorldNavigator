@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Literal
 
 
@@ -106,4 +108,54 @@ class Params:
 
     :return: A string representation of the Params instance.
     """
+    return self.__str__()
+
+
+@dataclass
+class ConditionPipelineContext:
+  denied: bool = False
+
+
+class BaseCondition(ABC):
+  """
+  Basic class for a condition in the conditional pipeline.
+
+  This class can be used to create conditions that can be used in :class:`Location <worldnavigator.locations.base_location.Location>`, and others.
+  It is used in the :class:`ConditionalPipeline <worldnavigator.core.condition_pipeline.ConditionalPipeline>` class.
+  """
+
+  def __init__(self) -> None:
+    super().__init__()
+    self._next_condition: 'BaseCondition' = None
+
+  def handle_next(self, context: ConditionPipelineContext):
+    """
+    Handles the next condition in the pipeline, if it exists.
+    """
+    if (self._next_condition is not None and not context.denied):
+      self._next_condition.handle(context)
+
+  @abstractmethod
+  def handle(self, context: ConditionPipelineContext):
+    """
+    Handles the condition you want to implement, can be check player inventory, check weather, check stats, etc.
+
+    :param ConditionPipelineContext context: The context from the pipeline head, used to know if the chain was denied.
+    """
+    pass
+
+  def __add__(self, other):
+    """
+    Link this condition to the next condition in the pipeline.
+
+    :param BaseCondition other: The next condition in the pipeline.
+    :return: The next condition in the pipeline.
+    """
+    self._next_condition = other
+    return other
+
+  def __str__(self) -> str:
+    return f'{self.__class__.__name__}(next_condition={self._next_condition})'
+
+  def __repr__(self) -> str:
     return self.__str__()
