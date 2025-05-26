@@ -1,4 +1,6 @@
 from typing import TYPE_CHECKING, Dict, List, Tuple, Optional
+
+from worldnavigator.core.condition_pipeline import ConditionalPipeline
 from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError
 from worldnavigator.errors.missing_day_bg import MissingDayBackgroundError
 from worldnavigator.observer import Observer
@@ -116,14 +118,10 @@ class Location(Observer):
     self._objects: dict[str, 'WorldObject'] = objects if objects is not None else {}
     self._is_indoor = is_indoor
 
+    self._condition_pipeline = ConditionalPipeline()
+
     self._connections: dict[str, 'Location'] = {}
     self._characters: list['GameCharacter'] = []
-
-  def __str__(self) -> str:
-    return f'Location("{self.name}", backgrounds="{self.backgrounds}", objects="{self.objects}", is_indoor="{self.is_indoor}")'
-
-  def __repr__(self) -> str:
-    return self.__str__()
 
   #################################################
   ################### Properties ##################
@@ -158,6 +156,11 @@ class Location(Observer):
   def characters(self) -> List['GameCharacter']:
     """Returns the characters present in the location."""
     return self._characters
+
+  @property
+  def condition_pipeline(self) -> ConditionalPipeline:
+    """Returns the conditional pipeline for the location."""
+    return self._condition_pipeline
 
   #################################################
   ################ Public Methods #################
@@ -276,3 +279,13 @@ class Location(Observer):
     :return: A comma-separated string of character names.
     """
     return ', '.join([character.name for character in self._characters])
+
+  #################################################
+  ################ Dunder Methods #################
+  #################################################
+
+  def __str__(self) -> str:
+    return f'Location("{self.name}", backgrounds="{self.backgrounds}", objects="{self.objects}", is_indoor="{self.is_indoor}")'
+
+  def __repr__(self) -> str:
+    return self.__str__()

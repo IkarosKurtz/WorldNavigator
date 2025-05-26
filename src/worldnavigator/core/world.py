@@ -177,14 +177,18 @@ class World:
     if isinstance(location, str):
       location = self.get_location(location)
 
+    if location.condition_pipeline.handle().denied:
+      return
+
     last_location = character.current_location
 
     if last_location is not None:
       last_location = self.get_location(last_location)
-      last_location.remove_character(character)
 
     # Why do you want to move a character to the same location?
     if last_location.name == location.name:
       raise CharacterAlreadyPresentError(f'Character "{character.name}" is already in "{location.name}"')
+
+    last_location.remove_character(character)
 
     location.add_character(character)

@@ -1,4 +1,5 @@
-from worldnavigator.types.types import BaseCondition
+from dataclasses import replace
+from worldnavigator.types.types import BaseCondition, ConditionPipelineContext
 
 
 class ConditionalPipeline(BaseCondition):
@@ -10,6 +11,7 @@ class ConditionalPipeline(BaseCondition):
 
   def __init__(self):
     self._next_condition: BaseCondition = None
+    self._context: ConditionPipelineContext = ConditionPipelineContext()
 
   def __call__(self, *args: list[BaseCondition]):
     current_node = self
@@ -18,4 +20,10 @@ class ConditionalPipeline(BaseCondition):
       current_node += arg
 
   def handle(self):
-    self.handle_next()
+    self.handle_next(self._context)
+
+    # We need to reset the context, but we want to know the context retrieved
+    context_copy = replace(self._context)
+
+    self._context = ConditionPipelineContext()
+    return context_copy
