@@ -53,11 +53,9 @@ class World:
   #################################################
 
   def _character_added(self, name: str, location: str):
-    print(f'Character "{name}" added to "{location}"')
     self._population += 1
 
   def _character_removed(self, name: str, location: str):
-    print(f'Character "{name}" removed from "{location}"')
     self._population -= 1
 
   #################################################
