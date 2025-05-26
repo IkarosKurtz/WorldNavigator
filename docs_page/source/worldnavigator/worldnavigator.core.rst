@@ -27,7 +27,8 @@ Character
    :show-inheritance:
    :undoc-members:
 
-Examples in Python:
+Examples in Python
+******************
 
   .. code-block:: python
 
@@ -112,7 +113,8 @@ Examples in Python:
       > Damage: 10
       > Inventory: ['sword', 'shield']
 
-Example in Ren'Py:
+Example in Ren'Py
+*****************
 
 .. code-block:: python
 
@@ -141,6 +143,7 @@ WorldObject
    :undoc-members:
 
 Examples
+********
 
 .. code-block:: python
 
@@ -193,3 +196,92 @@ You will get an error if the value is not the correct type for the parameter. Yo
 .. caution:: 
 
    Type and parameter checking occurs only at runtime, not during static type checking, due to implementation limitations.
+
+
+Condition Pipeline
+------------------
+
+A condition pipeline is the head of the conditions that will check all of the conditions before something, for example when player is moved to a location.
+
+Use this pipeline is easy, for :class:`Location <worldnavigator.locations.base_location.Location>` class, you can do this:
+``location.condition_pipeline(<your conditions>)``, and it will check all of the conditions before player is moved to that location.
+
+Below is an example of how to use it, in a raw code, but just replace ``pipe`` with ``location.condition_pipeline``
+
+.. automodule:: worldnavigator.core.condition_pipeline
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Example in Python
+*****************
+
+.. code-block:: python
+
+   from worldnavigator.core import ConditionalPipeline
+   from worldnavigator.types import BaseCondition
+
+
+   class WeatherCondition(BaseCondition):
+      def handle(self):
+         print('Weather Condition')
+
+         self.handle_next()
+
+
+   class LocationCondition(BaseCondition):
+      def handle(self):
+         print('Location Condition')
+
+         self.handle_next()
+
+
+   class ItemCondition(BaseCondition):
+      def handle(self):
+         print('Item Condition')
+
+         self.handle_next()
+
+
+   pipe = ConditionalPipeline()
+
+   pipe(
+      WeatherCondition(),
+      LocationCondition(),
+      ItemCondition()
+   )
+
+   pipe.handle()
+
+Output:
+
+.. code-block:: text
+
+   > Weather Condition
+   > Location Condition
+   > Item Condition
+
+Example in Ren'Py
+*****************
+
+.. code-block:: python
+
+   ...
+   
+   define location = Location('School')
+
+   label start:
+      python:
+         class WeatherCondition(BaseCondition):
+            def handle(self):
+               if world.time.time_of_day != 'night':
+                  return
+
+               self.handle_next()
+
+
+         location.condition_pipeline(
+            WeatherCondition()
+         )
+      
+      ...
