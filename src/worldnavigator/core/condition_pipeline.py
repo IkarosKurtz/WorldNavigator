@@ -15,6 +15,9 @@ class ConditionalPipeline(BaseCondition):
 
   def __call__(self, *args: list[BaseCondition]):
     current_node = self
+    # Reset the next condition if it exists
+    # Used to reset when call is used multiple times
+    self._next_condition = None
 
     for arg in args:
       current_node += arg
