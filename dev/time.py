@@ -16,7 +16,7 @@ clock = Thread(target=show_clock, daemon=True)
 
 def main():
   clock.start()
-  world_time.change_time(5)
+  world_time.adjust_time(5)
 
   idx = 0
   time.sleep(1)
