@@ -68,7 +68,7 @@ class WorldTime:
   ################ Public Methods #################
   #################################################
 
-  def show_clock(self):
+  def show_clock(self) -> str:
     """
     Get the current time in the format 'HH:MM', remember that the hours are in 24-hour format.
 
@@ -83,7 +83,7 @@ class WorldTime:
     """
     Start the time thread, this is used to update the time in the background.
 
-    Has two implementations depending where it's called from, from Ren'Py or Python.
+    Has two implementations depending where it's called, from Ren'Py or Python.
     For Ren'Py it's using ``renpy.invoke_in_thread``, for Python it's using the ``Thread`` class,
     they basically do the same thing.
     """

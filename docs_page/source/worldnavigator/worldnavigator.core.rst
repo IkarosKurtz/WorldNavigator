@@ -319,3 +319,11 @@ Example in Ren'Py
          )
       
       ...
+
+WorldTime
+---------
+
+.. automodule:: worldnavigator.core.world_time
+   :members:
+   :show-inheritance:
+   :undoc-members:
