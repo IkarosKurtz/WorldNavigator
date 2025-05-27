@@ -1,5 +1,5 @@
 import random
-from typing import Callable, Dict, Iterator
+from typing import Callable, Dict
 
 from worldnavigator.types import WeatherConditionsDict, GeneratedWeatherDict, Weather
 
@@ -30,7 +30,21 @@ class WorldWeather:
         'Rainy': lambda: random.choice(['Cloudy', 'Stormy']),
         'Stormy': lambda: random.choice(['Rainy', 'Cloudy']),
         'Snowy': lambda: random.choice(['Cloudy'])
-      }
+    }
+
+    self._current_weather: GeneratedWeatherDict = {}
+    self._weather_steps: list[GeneratedWeatherDict] = []
+
+  #################################################
+  ################### Properties ##################
+  #################################################
+
+  @property
+  def current_weather(self) -> GeneratedWeatherDict:
+    """
+    Get the current weather.
+    """
+    return self._current_weather
 
   #################################################
   ################ Private Methods ################
@@ -143,32 +157,23 @@ class WorldWeather:
 
     return timestamps
 
-  def start(self) -> Iterator[GeneratedWeatherDict]:
+  def update_weather(self) -> None:
     """
-    Starts the continuous weather simulation as a generator.
-
-    This method will yield the weather conditions for each hour continuously
-    without needing to call the simulation function repeatedly.
-
-    :return: An iterator that yields the weather conditions for each hour.
+    Update the weather by generating a new weather condition and adding it to the list of weather steps or iterating over the list.
     """
-    current_conditions = self._generate_weather('Sunny')
-    current_weather: Weather = 'Sunny'
+    if len(self._weather_steps) > 0:
+      self._current_weather = self._weather_steps.pop(0)
+      return
 
-    while True:  # Loop indefinitely until stopped externally
-      # Define the duration of the next transition
-      transition_duration = random.randint(2, 6)
+    current_weather = self._current_weather.get('weather', 'Sunny')
+    current_conditions = self._generate_weather(current_weather)
 
-      # Choose the next weather
-      new_weather = self._posible_transitions[current_weather]()
-      final_conditions = self._generate_weather(new_weather)
+    transition_duration = random.randint(2, 6)
 
-      # Perform the transition
-      transition_gen = self._transition_weather(current_conditions, final_conditions, transition_duration)
+    new_weather = self._posible_transitions[current_weather]()
+    final_conditions = self._generate_weather(new_weather)
 
-      for step in transition_gen:
-        yield step  # Yield each step of the transition
+    transition_gen = self._transition_weather(current_conditions, final_conditions, transition_duration)
 
-      # Update for the next transition
-      current_conditions = final_conditions
-      current_weather = new_weather
+    self._weather_steps.extend(transition_gen[1:])
+    self._current_weather = transition_gen[0]

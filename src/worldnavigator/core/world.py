@@ -1,6 +1,7 @@
-from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError
 from typing import TYPE_CHECKING, List, Dict, Union
 
+from worldnavigator.core.world_time import Time, WorldTime
+from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError
 from worldnavigator.errors.character_already_present import CharacterAlreadyPresentError
 
 if TYPE_CHECKING:
@@ -20,15 +21,18 @@ class World:
   and ``character_removed`` events from its locations.
   """
 
-  def __init__(self, *, name: str):
+  def __init__(self, *, name: str, initial_time: Time = Time()):
     """
     :param str name: The name of the world.
+    :param list[int] initial_time: The initial time of the world. See :ref:`~worldnavigator.core.world_time.WorldTime` for more information.
     """
     self._name = name
     self._locations: Dict[str, 'Location'] = {}
     self._total_characters: list['GameCharacter'] = []
     self._population = 0
     self._character_entrypoint: 'Location' = None
+
+    self._time = WorldTime(initial_time)
 
   #################################################
   ################### Properties ##################
@@ -47,6 +51,13 @@ class World:
     A list with all the locations in the world
     """
     return list(self._locations.values())
+
+  @property
+  def time(self) -> WorldTime:
+    """
+    Manager from the world time
+    """
+    return self._time
 
   #################################################
   ################ Private Methods ################

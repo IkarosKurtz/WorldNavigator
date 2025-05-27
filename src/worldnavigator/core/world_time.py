@@ -1,5 +1,15 @@
+from dataclasses import dataclass, field
 from threading import Event, Thread
 import time
+from typing import Tuple
+
+from worldnavigator.weather.weather import WorldWeather
+
+
+@dataclass
+class Time:
+  hours: int = field(default=12)
+  minutes: int = field(default=0)
 
 
 class WorldTime:
@@ -10,7 +20,7 @@ class WorldTime:
   but you can change the initial time.
   """
 
-  def __init__(self, initial_time: list[int] = [12, 0]) -> None:
+  def __init__(self, initial_time: Time = Time()) -> None:
     """
     :param list[int] initial_time: The initial time of the world, default is 12:00
     """
@@ -19,6 +29,8 @@ class WorldTime:
     self._time_amount = 5
     self._freeze_time = Event()
     self._freeze_time.set()
+
+    self._weather = WorldWeather()
 
   #################################################
   ################### Properties ##################
@@ -32,6 +44,13 @@ class WorldTime:
     """
     return self._time_amount
 
+  @property
+  def weather(self) -> WorldWeather:
+    """
+    Get the weather of the world.
+    """
+    return self._weather
+
   #################################################
   ################ Private Methods ################
   #################################################
@@ -42,15 +61,19 @@ class WorldTime:
 
     This is called every second, so it's important to keep it as light as possible.
     """
-    self._clock[1] += self._time_amount
-    surplus = abs(60 - self._clock[1])
+    self._clock.minutes += self._time_amount
+    surplus = abs(60 - self._clock.minutes)
 
-    if self._clock[1] >= 60:
-      self._clock[0] += 1
-      self._clock[1] = surplus
+    if self._clock.minutes >= 60:
+      self._clock.hours += 1
 
-    if self._clock[0] >= 24:
-      self._clock[0] = 0
+      # Change weather
+      self._weather.update_weather()
+
+      self._clock.minutes = surplus
+
+    if self._clock.hours >= 24:
+      self._clock.hours = 0
 
   def _update_time_thread(self) -> None:
     """
@@ -61,6 +84,8 @@ class WorldTime:
       self._freeze_time.wait()
 
       self._update_time()
+      print(self._weather.current_weather)
+      print(self.show_clock())
 
       time.sleep(1)
 
@@ -74,10 +99,18 @@ class WorldTime:
 
     :return: The current time in the format 'HH:MM'
     """
-    hours = self._clock[0] if self._clock[0] >= 10 else f'0{self._clock[0]}'
-    minutes = self._clock[1] if self._clock[1] >= 10 else f'0{self._clock[1]}'
+    hours = self._clock.hours if self._clock.hours >= 10 else f'0{self._clock.hours}'
+    minutes = self._clock.minutes if self._clock.minutes >= 10 else f'0{self._clock.minutes}'
 
     return f'{hours}:{minutes}'
+
+  def get_time(self) -> Tuple[int, int]:
+    """
+    Get the current time.
+
+    :return: The current time.
+    """
+    return (self._clock.hours, self._clock.minutes)
 
   def start_time(self) -> None:
     """
@@ -92,6 +125,8 @@ class WorldTime:
     else:
       self._thread = Thread(target=self._update_time_thread, daemon=True)
       self._thread.start()
+
+    self._weather.update_weather()
 
   def adjust_time(self, amount: int) -> None:
     """
