@@ -24,7 +24,7 @@ class World:
   def __init__(self, *, name: str, initial_time: Time = Time()):
     """
     :param str name: The name of the world.
-    :param list[int] initial_time: The initial time of the world. See :ref:`~worldnavigator.core.world_time.WorldTime` for more information.
+    :param Time initial_time: The initial time of the world. See :py:class:`~worldnavigator.core.world_time.WorldTime` for more information.
     """
     self._name = name
     self._locations: Dict[str, 'Location'] = {}
