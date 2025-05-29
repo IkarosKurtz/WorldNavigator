@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from threading import Event, Thread
 import time
-from typing import Tuple
+from typing import Callable, Tuple
 
 from worldnavigator.weather.weather import WorldWeather
 
@@ -29,6 +29,8 @@ class WorldTime:
     self._time_amount = 5
     self._freeze_time = Event()
     self._freeze_time.set()
+
+    self._time_listener: Callable[[Time], None] = None
 
     self._weather = WorldWeather()
 
@@ -75,6 +77,9 @@ class WorldTime:
     if self._clock.hours >= 24:
       self._clock.hours = 0
 
+    if self._time_listener:
+      self._time_listener(self._clock)
+
   def _update_time_thread(self) -> None:
     """
     Thread that updates the time in the background.
@@ -84,14 +89,18 @@ class WorldTime:
       self._freeze_time.wait()
 
       self._update_time()
-      print(self._weather.current_weather)
-      print(self.show_clock())
 
       time.sleep(1)
 
   #################################################
   ################ Public Methods #################
   #################################################
+
+  def listen_for_time(self, callback: Callable[[Time], None]) -> None:
+    """
+    Listen for the time, and call the callback with the current time.
+    """
+    self._time_listener = callback
 
   def show_clock(self) -> str:
     """
@@ -156,3 +165,13 @@ class WorldTime:
     Check if the time has been frozen, helpful for checking if the weather should change.
     """
     return not self._freeze_time.is_set()
+
+  def override_time(self, hours: int, minutes: int) -> None:
+    """
+    Override the time, this will stop the time from changing.
+    """
+    self._clock.hours = hours
+    self._clock.minutes = minutes
+
+    if self._time_listener:
+      self._time_listener(self._clock)

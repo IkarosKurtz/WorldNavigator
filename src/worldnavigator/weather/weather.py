@@ -1,7 +1,8 @@
 import random
 from typing import Callable, Dict
 
-from worldnavigator.types import WeatherConditionsDict, GeneratedWeatherDict, Weather
+from worldnavigator.types.typed_dicts import WeatherConditionsDict, GeneratedWeatherDict
+from worldnavigator.types.types import Weather
 
 
 class WorldWeather:
@@ -34,6 +35,10 @@ class WorldWeather:
 
     self._current_weather: GeneratedWeatherDict = {}
     self._weather_steps: list[GeneratedWeatherDict] = []
+
+    self._thunder_prob = 0.125
+    self._weather_change_listener: Callable[[GeneratedWeatherDict, list[GeneratedWeatherDict]], None] = None
+    self._thunder_listener: Callable[[], None] = None
 
   #################################################
   ################### Properties ##################
@@ -113,6 +118,18 @@ class WorldWeather:
   ################ Public Methods #################
   #################################################
 
+  def listen_for_weather_change(self, callback: Callable[[GeneratedWeatherDict, list[GeneratedWeatherDict]], None]) -> None:
+    """
+    Listen for the weather change, and call the callback with the current weather and the weather steps.
+    """
+    self._weather_change_listener = callback
+
+  def listen_for_thunder(self, callback: Callable[[], None]) -> None:
+    """
+    Listen for the thunder, and call the callback.
+    """
+    self._thunder_listener = callback
+
   def simulate_weather_with_transitions(self, total_duration: int, last_weather: Weather = 'Sunny') -> list[GeneratedWeatherDict]:
     """
     Simulates weather over a specified duration with transitions between states.
@@ -161,8 +178,16 @@ class WorldWeather:
     """
     Update the weather by generating a new weather condition and adding it to the list of weather steps or iterating over the list.
     """
+    last_weather = self._current_weather.get('weather', None)
+
     if len(self._weather_steps) > 0:
       self._current_weather = self._weather_steps.pop(0)
+
+      if self._current_weather['weather'] == 'Stormy' and random.random() < self._thunder_prob and self._thunder_listener:
+        self._thunder_listener()
+
+      if (last_weather is None or last_weather != self._current_weather['weather']) and self._weather_change_listener:
+        self._weather_change_listener(self._current_weather, self._weather_steps)
       return
 
     current_weather = self._current_weather.get('weather', 'Sunny')
@@ -177,3 +202,31 @@ class WorldWeather:
 
     self._weather_steps.extend(transition_gen[1:])
     self._current_weather = transition_gen[0]
+
+    if (last_weather is None or last_weather != self._current_weather['weather']) and self._weather_change_listener:
+      self._weather_change_listener(self._current_weather, self._weather_steps)
+
+    if self._current_weather['weather'] == 'Stormy' and random.random() < self._thunder_prob and self._thunder_listener:
+      self._thunder_listener()
+
+  def override_weather(self, current_weather: Weather, next_weather: Weather, duration: int) -> None:
+    """
+    Override the weather for a given duration.
+    """
+    current_conditions = self._generate_weather(current_weather)
+    next_conditions = self._generate_weather(next_weather)
+
+    transition_gen = self._transition_weather(current_conditions, next_conditions, duration)
+
+    self._weather_steps.extend(transition_gen[1:])
+    self._current_weather = transition_gen[0]
+
+    if self._weather_change_listener:
+      self._weather_change_listener(self._current_weather, self._weather_steps)
+
+  def throw_thunder(self) -> None:
+    """
+    Throw thunder.
+    """
+    if self._thunder_listener:
+      self._thunder_listener()
