@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict, List, Tuple, Optional
 from worldnavigator.core.condition_pipeline import ConditionalPipeline
 from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError
 from worldnavigator.errors.missing_day_bg import MissingDayBackgroundError
-from worldnavigator.observer import Observer
+from worldnavigator.observer.observer import Observer
 from worldnavigator.types.typed_dicts import BackgroundsDict
 
 if TYPE_CHECKING:

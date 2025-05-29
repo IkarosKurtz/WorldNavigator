@@ -1,8 +1,7 @@
 from typing import TYPE_CHECKING, List, Dict, Union
 
 from worldnavigator.core.world_time import Time, WorldTime
-from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError
-from worldnavigator.errors.character_already_present import CharacterAlreadyPresentError
+from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError, CharacterAlreadyPresentError
 
 if TYPE_CHECKING:
   from worldnavigator.locations.base_location import Location

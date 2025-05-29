@@ -1,8 +1,8 @@
 import inspect
 from typing import Annotated, Any, get_args, get_origin
 
-from worldnavigator.types import Params
-from worldnavigator.utils import is_valid_prop_value
+from worldnavigator.types.types import Params
+from worldnavigator.utils.functions import is_valid_prop_value
 
 
 def evaluate_events(cls: Any):

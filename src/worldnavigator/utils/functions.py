@@ -1,5 +1,5 @@
 from typing import Union
-from worldnavigator.types import BASIC_TYPES
+from worldnavigator.types.types import BASIC_TYPES
 
 
 def is_valid_prop_value(value: Union[type, tuple[type, str]]) -> bool:
