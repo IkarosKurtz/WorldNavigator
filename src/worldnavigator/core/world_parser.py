@@ -1,4 +1,5 @@
 import json as JSON
+import os
 from typing import Union
 
 from worldnavigator.core.world import World
@@ -28,7 +29,11 @@ class WorldParser:
     :param Union[dict, str] json: The JSON string to parse or the path to the JSON file.
     """
     if isinstance(json, str):
-      with open(json, 'r', encoding='utf-8') as f:
+      path = json
+      if 'renpy' in globals():
+        path = os.path.join(renpy.config.gamedir, json)  # type: ignore
+
+      with open(path, 'r', encoding='utf-8') as f:
         json = JSON.load(f)
 
     locations: list[LocationDict] = json.get('locations', [])
