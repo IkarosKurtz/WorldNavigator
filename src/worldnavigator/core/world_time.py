@@ -1,9 +1,23 @@
 from dataclasses import dataclass, field
 from threading import Event, Thread
 import time
-from typing import Callable, Tuple
+from typing import Callable, Literal, Tuple
 
 from worldnavigator.weather.weather import WorldWeather
+
+DateFormat = Literal[
+  'DD/MM/YYYY',
+  'MM/DD/YYYY',
+  'YYYY/MM/DD',
+  'DD-MM-YYYY',
+  'MM-DD-YYYY',
+  'YYYY-MM-DD',
+]
+
+ClockFormat = Literal[
+  '12:00',
+  '24:00',
+]
 
 
 @dataclass
@@ -33,6 +47,23 @@ class WorldTime:
     self._time_listener: Callable[[Time], None] = None
 
     self._weather = WorldWeather()
+
+    self._date = [29, 5, 2025]
+
+    self._months = [
+      ('January', 31),
+      ('February', 28),
+      ('March', 31),
+      ('April', 30),
+      ('May', 31),
+      ('June', 30),
+      ('July', 31),
+      ('August', 31),
+      ('September', 30),
+      ('October', 31),
+      ('November', 30),
+      ('December', 31)
+    ]
 
   #################################################
   ################### Properties ##################
@@ -76,6 +107,16 @@ class WorldTime:
 
     if self._clock.hours >= 24:
       self._clock.hours = 0
+      self._date[0] += 1
+
+      max_days = self._months[self._date[1] - 1][1]
+      if self._date[0] > max_days:
+        self._date[0] = 1
+        self._date[1] += 1
+
+      if self._date[1] > 12:
+        self._date[1] = 1
+        self._date[2] += 1
 
     if self._time_listener:
       self._time_listener(self._clock)
@@ -102,16 +143,58 @@ class WorldTime:
     """
     self._time_listener = callback
 
-  def show_clock(self) -> str:
+  def show_clock(self, format: ClockFormat = 'HH:MM') -> str:
     """
-    Get the current time in the format 'HH:MM', remember that the hours are in 24-hour format.
+    Get the current time, in the format specified
 
-    :return: The current time in the format 'HH:MM'
+    :param ClockFormat format: The format of the time to return. By default it's 'HH:MM'.
+
+    :return: The current time in the desired format
     """
     hours = self._clock.hours if self._clock.hours >= 10 else f'0{self._clock.hours}'
     minutes = self._clock.minutes if self._clock.minutes >= 10 else f'0{self._clock.minutes}'
 
-    return f'{hours}:{minutes}'
+    match format:
+      case '12:00':
+        am_pm = "AM" if self._clock.hours < 12 else "PM"
+        display_hours = hours if self._clock.hours <= 12 else f'{self._clock.hours - 12:02d}'
+
+        return f'{display_hours}:{minutes} {am_pm}'
+      case '24:00':
+        return f'{hours}:{minutes}'
+      case _:
+        return f'{hours}:{minutes}'
+
+  def show_date(self, format: DateFormat = 'MM/DD/YYYY', full_month: bool = False) -> str:
+    """
+    Get the current date, in the format specified
+
+    :param DateFormat format: The format of the date to return. By default it's 'MM/DD/YYYY'.
+
+    :return: The current date in the format specified
+    """
+    day = self._date[0]
+    month = self._date[1]
+    year = self._date[2]
+
+    if full_month:
+      month = self._months[month - 1][0]
+
+    match format:
+      case 'DD-MM-YYYY':
+        return f'{day}-{month}-{year}'
+      case 'DD/MM/YYYY':
+        return f'{day}/{month}/{year}'
+      case 'MM-DD-YYYY':
+        return f'{month}-{day}-{year}'
+      case 'MM/DD/YYYY':
+        return f'{month}/{day}/{year}'
+      case 'YYYY-MM-DD':
+        return f'{year}-{month}-{day}'
+      case 'YYYY/MM/DD':
+        return f'{year}/{month}/{day}'
+      case _:
+        return f'{month}/{day}/{year}'
 
   def get_time(self) -> Tuple[int, int]:
     """
@@ -175,3 +258,28 @@ class WorldTime:
 
     if self._time_listener:
       self._time_listener(self._clock)
+
+  def override_date(self, *, day: int = None, month: int = None, year: int = None) -> None:
+    """
+    Override the date, this will stop the date from changing.
+
+    :param int day: The day to override the date to.
+    :param int month: The month to override the date to.
+    :param int year: The year to override the date to.
+    """
+    if month:
+      if 1 <= month <= 12:
+        self._date[1] = month
+      else:
+        raise ValueError(f"Month must be between 1 and 12, got {month}")
+
+    if day:
+      max_days = self._months[self._date[1] - 1][1]
+
+      if 1 <= day <= max_days:
+        self._date[0] = day
+      else:
+        raise ValueError(f"Day must be between 1 and {max_days} for month {self._months[month - 1][0]}, got {day}")
+
+    if year:
+      self._date[2] = year
