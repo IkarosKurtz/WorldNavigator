@@ -121,12 +121,16 @@ class WorldWeather:
   def listen_for_weather_change(self, callback: Callable[[GeneratedWeatherDict, list[GeneratedWeatherDict]], None]) -> None:
     """
     Listen for the weather change, and call the callback with the current weather and the weather steps.
+
+    :param Callable[[GeneratedWeatherDict, list[GeneratedWeatherDict]], None] callback: The callback to call with the current weather and the weather steps.
     """
     self._weather_change_listener = callback
 
   def listen_for_thunder(self, callback: Callable[[], None]) -> None:
     """
     Listen for the thunder, and call the callback.
+
+    :param Callable[[], None] callback: The callback to call when thunder is thrown.
     """
     self._thunder_listener = callback
 
@@ -211,7 +215,12 @@ class WorldWeather:
 
   def override_weather(self, current_weather: Weather, next_weather: Weather, duration: int) -> None:
     """
-    Override the weather for a given duration.
+    Override the current weather, and set the next weather after the duration.
+    This will trigger the listener for the weather change.
+
+    :param Weather current_weather: The current weather to override.
+    :param Weather next_weather: The next weather to set after the duration.
+    :param int duration: The duration of the override.
     """
     current_conditions = self._generate_weather(current_weather)
     next_conditions = self._generate_weather(next_weather)
@@ -226,7 +235,8 @@ class WorldWeather:
 
   def throw_thunder(self) -> None:
     """
-    Throw thunder.
+    Trigger the thunder listener, is just a helper method to trigger the thunder listener, 
+    doesn't have any other functionality.	
     """
     if self._thunder_listener:
       self._thunder_listener()
