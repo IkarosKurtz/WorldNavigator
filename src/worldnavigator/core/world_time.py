@@ -45,6 +45,7 @@ class WorldTime:
     self._freeze_time.set()
 
     self._time_listener: Callable[[Time], None] = None
+    self._date_listener: Callable[[list[int]], None] = None
 
     self._weather = WorldWeather()
 
@@ -118,6 +119,9 @@ class WorldTime:
         self._date[1] = 1
         self._date[2] += 1
 
+      if self._date_listener:
+        self._date_listener(self._date)
+
     if self._time_listener:
       self._time_listener(self._clock)
 
@@ -139,9 +143,19 @@ class WorldTime:
 
   def listen_for_time(self, callback: Callable[[Time], None]) -> None:
     """
-    Listen for the time, and call the callback with the current time.
+    Listen for the time, and call the callback with the current time, when time is updated.
+
+    :param Callable[[Time], None] callback: The callback to call with the current time.
     """
     self._time_listener = callback
+
+  def listen_for_date(self, callback: Callable[[list[int]], None]) -> None:
+    """
+    Listen for the date, and call the callback with the current date, when a new day starts.
+
+    :param Callable[[list[int]], None] callback: The callback to call with the current date.
+    """
+    self._date_listener = callback
 
   def show_clock(self, format: ClockFormat = 'HH:MM') -> str:
     """
@@ -154,16 +168,15 @@ class WorldTime:
     hours = self._clock.hours if self._clock.hours >= 10 else f'0{self._clock.hours}'
     minutes = self._clock.minutes if self._clock.minutes >= 10 else f'0{self._clock.minutes}'
 
-    match format:
-      case '12:00':
-        am_pm = "AM" if self._clock.hours < 12 else "PM"
-        display_hours = hours if self._clock.hours <= 12 else f'{self._clock.hours - 12:02d}'
+    if format == '12:00':
+      am_pm = "AM" if self._clock.hours < 12 else "PM"
+      display_hours = hours if self._clock.hours <= 12 else f'{self._clock.hours - 12:02d}'
 
-        return f'{display_hours}:{minutes} {am_pm}'
-      case '24:00':
-        return f'{hours}:{minutes}'
-      case _:
-        return f'{hours}:{minutes}'
+      return f'{display_hours}:{minutes} {am_pm}'
+    elif format == '24:00':
+      return f'{hours}:{minutes}'
+    else:
+      return f'{hours}:{minutes}'
 
   def show_date(self, format: DateFormat = 'MM/DD/YYYY', full_month: bool = False) -> str:
     """
@@ -180,21 +193,16 @@ class WorldTime:
     if full_month:
       month = self._months[month - 1][0]
 
-    match format:
-      case 'DD-MM-YYYY':
-        return f'{day}-{month}-{year}'
-      case 'DD/MM/YYYY':
-        return f'{day}/{month}/{year}'
-      case 'MM-DD-YYYY':
-        return f'{month}-{day}-{year}'
-      case 'MM/DD/YYYY':
-        return f'{month}/{day}/{year}'
-      case 'YYYY-MM-DD':
-        return f'{year}-{month}-{day}'
-      case 'YYYY/MM/DD':
-        return f'{year}/{month}/{day}'
-      case _:
-        return f'{month}/{day}/{year}'
+    formats = {
+      'DD-MM-YYYY': f'{day}-{month}-{year}',
+      'DD/MM/YYYY': f'{day}/{month}/{year}',
+      'MM-DD-YYYY': f'{month}-{day}-{year}',
+      'MM/DD/YYYY': f'{month}/{day}/{year}',
+      'YYYY-MM-DD': f'{year}-{month}-{day}',
+      'YYYY/MM/DD': f'{year}/{month}/{day}'
+    }
+
+    return formats.get(format, f'{month}/{day}/{year}')
 
   def get_time(self) -> Tuple[int, int]:
     """
@@ -251,17 +259,30 @@ class WorldTime:
 
   def override_time(self, hours: int, minutes: int) -> None:
     """
-    Override the time, this will stop the time from changing.
+    Override the current time, **is important to know that hours are in 24-hour format**,
+    even if you use the 12:00 format in the :py:meth:`~worldnavigator.core.world_time.WorldTime.show_clock` method.
+
+    This will trigger the listener for the time.
+
+    :param int hours: The hours to override the time to. Must be between 0 and 23.
+    :param int minutes: The minutes to override the time to. Must be between 0 and 59.
     """
-    self._clock.hours = hours
-    self._clock.minutes = minutes
+    if 0 <= hours <= 23:
+      self._clock.hours = hours
+    else:
+      raise ValueError(f"Hours must be between 0 and 23, got {hours}")
+
+    if 0 <= minutes <= 59:
+      self._clock.minutes = minutes
+    else:
+      raise ValueError(f"Minutes must be between 0 and 59, got {minutes}")
 
     if self._time_listener:
       self._time_listener(self._clock)
 
   def override_date(self, *, day: int = None, month: int = None, year: int = None) -> None:
     """
-    Override the date, this will stop the date from changing.
+    Override the current date, this will trigger the listener for the date.
 
     :param int day: The day to override the date to.
     :param int month: The month to override the date to.
