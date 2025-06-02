@@ -83,6 +83,24 @@ class LocationBackground:
     else:
       return self.night
 
+  #################################################
+  ################ Dunder Methods #################
+  #################################################
+
+  def __getstate__(self):
+    """
+    Function for compatibility with pickle, used for renpy save/load.
+    """
+    state = self.__dict__.copy()
+
+    return state
+
+  def __setstate__(self, state):
+    """
+    Function for compatibility with pickle, used for renpy save/load.
+    """
+    self.__dict__.update(state)
+
 
 class Location(Observer):
   """

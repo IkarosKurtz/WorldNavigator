@@ -23,7 +23,7 @@ class Observer:
     This constructor sets up an empty dictionary to hold event listeners,
     mapping event names to their corresponding callback functions.
     """
-    self.events: dict[EventName, Callable] = {}
+    self._events: dict[EventName, Callable] = {}
 
   @overload
   def on(self, event_name: Literal['character_added'], func: Callable[[CharacterAddedEvent], None]) -> None:
@@ -52,7 +52,7 @@ class Observer:
     :param EventName event_name: The name of the event to listen to.
     :param Callable func: The function to call when the event is triggered.
     """
-    self.events[event_name] = func
+    self._events[event_name] = func
 
   @overload
   def trigger(self, event_name: Literal['character_added'], data: CharacterAddedEvent) -> None:
@@ -87,10 +87,10 @@ class Observer:
     :return: The result of the callback function.
     :raises ValueError: If the event is not registered or if the data does not match the expected types.
     """
-    if event_name not in self.events:
+    if event_name not in self._events:
       raise ValueError('Event not registered')
 
-    func = self.events[event_name]
+    func = self._events[event_name]
 
     types_hints = get_type_hints(func)
     for key, value in types_hints.items():

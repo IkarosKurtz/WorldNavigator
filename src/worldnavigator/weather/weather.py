@@ -18,19 +18,19 @@ class WorldWeather:
 
   def __init__(self) -> None:
     self._weather: Dict[Weather, WeatherConditionsDict] = {
-        'Sunny': {'temperature': (25, 35), 'humidity': (10, 30), 'wind': (0, 10), 'clouds': (0, 20)},
-        'Cloudy': {'temperature': (15, 25), 'humidity': (40, 60), 'wind': (5, 15), 'clouds': (60, 100)},
-        'Rainy': {'temperature': (10, 20), 'humidity': (70, 90), 'wind': (10, 20), 'clouds': (80, 100)},
-        'Stormy': {'temperature': (8, 18), 'humidity': (80, 100), 'wind': (20, 40), 'clouds': (90, 100)},
-        'Snowy': {'temperature': (-5, 5), 'humidity': (60, 80), 'wind': (5, 15), 'clouds': (70, 100)}
+      'Sunny': {'temperature': (25, 35), 'humidity': (10, 30), 'wind': (0, 10), 'clouds': (0, 20)},
+      'Cloudy': {'temperature': (15, 25), 'humidity': (40, 60), 'wind': (5, 15), 'clouds': (60, 100)},
+      'Rainy': {'temperature': (10, 20), 'humidity': (70, 90), 'wind': (10, 20), 'clouds': (80, 100)},
+      'Stormy': {'temperature': (8, 18), 'humidity': (80, 100), 'wind': (20, 40), 'clouds': (90, 100)},
+      'Snowy': {'temperature': (-5, 5), 'humidity': (60, 80), 'wind': (5, 15), 'clouds': (70, 100)}
     }
 
     self._posible_transitions: Dict[Weather, Callable[[], str]] = {
-        'Sunny': lambda: random.choice(['Cloudy', 'Rainy']),
-        'Cloudy': lambda: random.choice(['Sunny', 'Rainy', 'Stormy', 'Snowy']),
-        'Rainy': lambda: random.choice(['Cloudy', 'Stormy']),
-        'Stormy': lambda: random.choice(['Rainy', 'Cloudy']),
-        'Snowy': lambda: random.choice(['Cloudy'])
+      'Sunny': ['Cloudy', 'Rainy'],
+      'Cloudy': ['Sunny', 'Rainy', 'Stormy', 'Snowy'],
+      'Rainy': ['Cloudy', 'Stormy'],
+      'Stormy': ['Rainy', 'Cloudy'],
+      'Snowy': ['Cloudy'],
     }
 
     self._current_weather: GeneratedWeatherDict = {}
@@ -50,6 +50,13 @@ class WorldWeather:
     Get the current weather.
     """
     return self._current_weather
+
+  @property
+  def weather_steps(self) -> list[GeneratedWeatherDict]:
+    """
+    Get the weather steps remaining to be processed.
+    """
+    return self._weather_steps
 
   #################################################
   ################ Private Methods ################
@@ -163,7 +170,7 @@ class WorldWeather:
         transition_duration = remaining_period
 
       # Choose the next weather
-      new_weather = self._posible_transitions[current_weather]()
+      new_weather = random.choice(self._posible_transitions[current_weather])
       final_conditions = self._generate_weather(new_weather)
 
       # Perform the transition
@@ -182,8 +189,12 @@ class WorldWeather:
     """
     Update the weather by generating a new weather condition and adding it to the list of weather steps or iterating over the list.
     """
+    print(f'WEATHER: {self._current_weather}')
+    print(f'WEATHER STEPS: {self._weather_steps}')
     last_weather = self._current_weather.get('weather', None)
 
+    # TODO: Fix this, for some reason it skips the last current weather
+    # when weather steps is empty
     if len(self._weather_steps) > 0:
       self._current_weather = self._weather_steps.pop(0)
 
@@ -194,12 +205,13 @@ class WorldWeather:
         self._weather_change_listener(self._current_weather, self._weather_steps)
       return
 
+    print('NEW WEATHER STEPS')
     current_weather = self._current_weather.get('weather', 'Sunny')
     current_conditions = self._generate_weather(current_weather)
 
     transition_duration = random.randint(2, 6)
 
-    new_weather = self._posible_transitions[current_weather]()
+    new_weather = random.choice(self._posible_transitions[current_weather])
     final_conditions = self._generate_weather(new_weather)
 
     transition_gen = self._transition_weather(current_conditions, final_conditions, transition_duration)
@@ -240,3 +252,36 @@ class WorldWeather:
     """
     if self._thunder_listener:
       self._thunder_listener()
+
+  #################################################
+  ################ Dunder Methods #################
+  #################################################
+
+  def __getstate__(self):
+    """
+    Function for compatibility with pickle, used for renpy save/load.
+    """
+    state = self.__dict__.copy()
+
+    del state['_weather_change_listener']
+    del state['_thunder_listener']
+
+    print(f'Saving weather: {state}')
+
+    return state
+
+  def __setstate__(self, state):
+    """
+    Function for compatibility with pickle, used for renpy save/load.
+    """
+    cw = state.pop('_current_weather')
+    ws = state.pop('_weather_steps')
+    self.__dict__.update(state)
+
+    self._weather_change_listener = None
+    self._thunder_listener = None
+    self._current_weather = cw
+    self._weather_steps = ws
+
+    print(f'Loading weather2: {self.__dict__}')
+    print(f'Loading weather: {state}')

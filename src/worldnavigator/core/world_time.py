@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from threading import Event, Thread
+from threading import Thread
 import time
 from typing import Callable, Literal, Tuple
 
@@ -36,13 +36,12 @@ class WorldTime:
 
   def __init__(self, initial_time: Time = Time()) -> None:
     """
-    :param list[int] initial_time: The initial time of the world, default is 12:00
+    :param Time initial_time: The initial time of the world, default is 12:00
     """
     self._clock = initial_time
     self._thread: Thread = None
     self._time_amount = 5
-    self._freeze_time = Event()
-    self._freeze_time.set()
+    self._freeze_time = False
 
     self._time_listener: Callable[[Time], None] = None
     self._date_listener: Callable[[list[int]], None] = None
@@ -110,6 +109,7 @@ class WorldTime:
       self._clock.hours = 0
       self._date[0] += 1
 
+      # Update date
       max_days = self._months[self._date[1] - 1][1]
       if self._date[0] > max_days:
         self._date[0] = 1
@@ -125,15 +125,22 @@ class WorldTime:
     if self._time_listener:
       self._time_listener(self._clock)
 
-  def _update_time_thread(self) -> None:
+  def update_time_thread(self) -> None:
     """
     Thread that updates the time in the background.
     """
+    # This is used for Ren'Py compatibility
+    # When used in special screen `world_info`
+    if self._thread is None:
+      if not self._freeze_time:
+        self._update_time()
+      return
+
     print('Starting time thread')
     while True:
-      self._freeze_time.wait()
-
-      self._update_time()
+      print(f'Time thread running, threads: {self._threads}')
+      if not self._freeze_time:
+        self._update_time()
 
       time.sleep(1)
 
@@ -157,11 +164,11 @@ class WorldTime:
     """
     self._date_listener = callback
 
-  def show_clock(self, format: ClockFormat = 'HH:MM') -> str:
+  def show_clock(self, format: ClockFormat = '24:00') -> str:
     """
     Get the current time, in the format specified
 
-    :param ClockFormat format: The format of the time to return. By default it's 'HH:MM'.
+    :param ClockFormat format: The format of the time to return. By default it's '24:00'.
 
     :return: The current time in the desired format
     """
@@ -174,8 +181,6 @@ class WorldTime:
 
       return f'{display_hours}:{minutes} {am_pm}'
     elif format == '24:00':
-      return f'{hours}:{minutes}'
-    else:
       return f'{hours}:{minutes}'
 
   def show_date(self, format: DateFormat = 'MM/DD/YYYY', full_month: bool = False) -> str:
@@ -221,7 +226,7 @@ class WorldTime:
     they basically do the same thing.
     """
     if 'renpy' in globals():
-      renpy.invoke_in_thread(self._update_time_thread)  # type: ignore
+      print("Ren'Py detected, please use the special screen to start the time")
     else:
       self._thread = Thread(target=self._update_time_thread, daemon=True)
       self._thread.start()
@@ -243,19 +248,19 @@ class WorldTime:
     """
     Freeze the time, so it doesn't change, this also stops weather from changing.
     """
-    self._freeze_time.clear()
+    self._freeze_time = True
 
   def unfreeze_time(self) -> None:
     """
     Unfreeze the time, so it can change again, this also starts weather from changing.
     """
-    self._freeze_time.set()
+    self._freeze_time = False
 
   def is_time_frozen(self) -> bool:
     """
     Check if the time has been frozen, helpful for checking if the weather should change.
     """
-    return not self._freeze_time.is_set()
+    return self._freeze_time
 
   def override_time(self, hours: int, minutes: int) -> None:
     """
@@ -304,3 +309,39 @@ class WorldTime:
 
     if year:
       self._date[2] = year
+
+  #################################################
+  ################ Dunder Methods #################
+  #################################################
+
+  def __getstate__(self):
+    """
+    Function for compatibility with pickle, used for renpy save/load.
+    """
+    state = self.__dict__.copy()
+    hour, minute = self.get_time()
+
+    del state['_thread']
+    del state['_time_listener']
+    del state['_date_listener']
+    del state['_clock']
+    state['_clock'] = {'hours': hour, 'minutes': minute}
+    print(f'Saving time: {state}')
+
+    return state
+
+  def __setstate__(self, state):
+    """
+    Function for compatibility with pickle, used for renpy save/load.
+    """
+    clock = state.pop('_clock')
+    self.__dict__.update(state)
+    print(f'Loading time: {state}')
+
+    self._clock = Time(clock['hours'], clock['minutes'])
+
+    self._time_listener = None
+    self._date_listener = None
+    self._threads = 0
+
+    self._thread = None

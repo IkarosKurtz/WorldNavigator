@@ -3,7 +3,6 @@ import os
 from typing import Union
 
 from worldnavigator.core.world import World
-from worldnavigator.core.world_time import Time
 from worldnavigator.locations.base_location import Location
 from worldnavigator.types.typed_dicts import LocationDict
 from worldnavigator.errors import NoLocationsFoundError
@@ -22,7 +21,7 @@ class WorldParser:
   """
 
   @classmethod
-  def scene_graph_parser(cls, json: Union[dict, str], initial_time: Time = Time()) -> World:
+  def scene_graph_parser(cls, json: Union[dict, str]) -> World:
     """
     Parse a JSON with SceneGraph format.
 
@@ -42,7 +41,7 @@ class WorldParser:
 
     world_name = json.get('name', 'World')
 
-    world = World(name=world_name, initial_time=initial_time)
+    world = World(name=world_name)
 
     # First we create all the locations
     for location in locations:

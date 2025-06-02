@@ -58,6 +58,7 @@ class WorldObject(Generic[EventType, EventName]):
     Extract all the data from EventType type, is used for data validation in functions and payloads
     """
     if not hasattr(self, 'hints'):
+      # We extract the type of EventType
       self._V_type = get_args(self.__orig_class__)[0]
       self._events_class_name = self._V_type.__name__
       self._hints_of = get_type_hints(self._V_type, include_extras=True)

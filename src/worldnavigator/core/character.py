@@ -29,10 +29,21 @@ class GameCharacter(Generic[ExtraData]):
   """
 
   def __init__(self, name: str, data: Optional[ExtraData] = None, **kwargs: dict[str, Any]):
+    """ 
+    :param str name: The name of the character.
+    :param ExtraData data: Extra data to store in the character, like inventory, stats, etc.
+    :param bool dynamic: This is used for Ren'Py compatibility, \
+      this means ``Character`` will have dynamic parameter to True. See `Ren'Py`_ for more information.
+    :param dict[str, Any] kwargs: The keyword arguments define in `Ren'Py`_.
+
+     .. _Ren'Py: https://www.renpy.org/doc/html/dialogue.html#defining-character-objects
+    """
+    self.name: str = name
+    self._renpy_kwargs: dict[str, Any] = kwargs
+
     if 'renpy' in globals():
-      self.c = Character(name, **kwargs)  # type: ignore
+      self.c = Character(name, **self._renpy_kwargs)  # type: ignore
     else:
-      self.name: str = name
       self.c = None
 
     self._current_location: str = None
@@ -81,16 +92,17 @@ class GameCharacter(Generic[ExtraData]):
 
         human "Hello, world!"
     """
-    if self.c is None:
-      return self(*args, **kwargs)
-
-    return self.c(*args, **kwargs)
+    if self.c is not None:
+      return self.c(*args, **kwargs)
 
   def __getattr__(self, item):
-    if self.c is None:
-      return getattr(self, item)
+    if item in self.__dict__:
+      return self.__dict__[item]
 
-    return getattr(self.c, item)
+    if self.c is not None and hasattr(self.c, item):
+      return getattr(self.c, item)
+
+    raise AttributeError(f"'{type(self).__name__}' object has no attribute '{item}'")
 
   def __eq__(self, value: object) -> bool:
     if not isinstance(value, GameCharacter):
@@ -103,3 +115,21 @@ class GameCharacter(Generic[ExtraData]):
 
   def __repr__(self):
     return self.__str__()
+
+  def __getstate__(self):
+    """
+    Function for compatibility with pickle, used for renpy save/load.
+    """
+    state = self.__dict__.copy()
+
+    print(f'Saving character: {state}')
+
+    return state
+
+  def __setstate__(self, state):
+    """
+    Function for compatibility with pickle, used for renpy save/load.
+    """
+    self.__dict__.update(state)
+
+    print(f'Loading character: {state}')

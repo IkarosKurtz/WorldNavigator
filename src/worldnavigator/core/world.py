@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List, Dict, Union
 
-from worldnavigator.core.world_time import Time, WorldTime
+from worldnavigator.core.world_time import WorldTime
 from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError, CharacterAlreadyPresentError
 
 if TYPE_CHECKING:
@@ -20,18 +20,15 @@ class World:
   and ``character_removed`` events from its locations.
   """
 
-  def __init__(self, *, name: str, initial_time: Time = Time()):
+  def __init__(self, *, name: str):
     """
     :param str name: The name of the world.
-    :param Time initial_time: The initial time of the world. See :py:class:`~worldnavigator.core.world_time.WorldTime` for more information.
     """
     self._name = name
     self._locations: Dict[str, 'Location'] = {}
     self._total_characters: list['GameCharacter'] = []
     self._population = 0
     self._character_entrypoint: 'Location' = None
-
-    self._time = WorldTime(initial_time)
 
   #################################################
   ################### Properties ##################
@@ -133,6 +130,16 @@ class World:
         return f'"{character.name}" is in "{location.name}"'
 
     return f'"{character.name}" is not found in the world.'
+
+  def where_are_everyone(self) -> str:
+    """
+    Get a string with the location of all characters in the world
+    """
+    final_string = ''
+    for character in self._total_characters:
+      final_string += f'"{character.name}" is in "{character.current_location}"\n'
+
+    return final_string
 
   def character_entrypoint(self, location: Union[str, 'Location']) -> None:
     """
