@@ -253,6 +253,18 @@ class WorldWeather:
     if self._thunder_listener:
       self._thunder_listener()
 
+  def set_weather(self, weather_steps: list[GeneratedWeatherDict]) -> None:
+    """
+    Set the weather steps and current weather to the given list of weather steps.
+    Used to set manually the weather steps and current weather.
+
+    You can use :py:meth:`~worldnavigator.weather.weather.WorldWeather.simulate_weather_with_transitions` to generate a list of weather steps.
+
+    :param list[GeneratedWeatherDict] weather_steps: The list of weather steps to set.
+    """
+    self._weather_steps = weather_steps[1:]
+    self._current_weather = weather_steps[0]
+
   #################################################
   ################ Dunder Methods #################
   #################################################
