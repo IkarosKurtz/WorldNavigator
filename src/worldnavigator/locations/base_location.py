@@ -302,8 +302,28 @@ class Location(Observer):
   ################ Dunder Methods #################
   #################################################
 
-  def __str__(self) -> str:
-    return f'Location("{self.name}", backgrounds="{self.backgrounds}", objects="{self.objects}", is_indoor="{self.is_indoor}")'
+  def __getstate__(self) -> object:
+    state = self.__dict__.copy()
 
-  def __repr__(self) -> str:
-    return self.__str__()
+    del state['_condition_pipeline']
+    del state['_events']
+    print(f'Saving Location: {state}')
+
+    return state
+
+  def __setstate__(self, state: object) -> None:
+    characters = state.pop('_characters')
+    self.__dict__.update(state)
+
+    # TODO: Fix __str__ and __repr__
+    # When Location begin loaded, renpy throws an error
+    # Because _name is not defined, why?
+
+    # TODO: I don't know why this works
+    # Before the characters were not being loaded
+    self._characters = characters
+
+    self._condition_pipeline = ConditionalPipeline()
+    self._events = {}
+
+    print(f'Loading Location: {state}')

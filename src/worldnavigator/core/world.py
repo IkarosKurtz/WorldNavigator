@@ -209,3 +209,18 @@ class World:
 
     location.add_character(character)
     return True
+
+  #################################################
+  ################ Dunder Methods #################
+  #################################################
+
+  def __getstate__(self) -> object:
+    state = self.__dict__.copy()
+    print(f'Saving World: {state}')
+
+    return state
+
+  def __setstate__(self, state: object) -> None:
+    self.__dict__.update(state)
+
+    print(f'Loading World: {state}')
