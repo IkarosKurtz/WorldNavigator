@@ -223,4 +223,8 @@ class World:
   def __setstate__(self, state: object) -> None:
     self.__dict__.update(state)
 
+    for location in self._locations.values():
+      location.on('character_added', self._character_added)
+      location.on('character_removed', self._character_removed)
+
     print(f'Loading World: {state}')
