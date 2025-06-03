@@ -84,7 +84,7 @@ class GameCharacter(Generic[ExtraData]):
     """
     This dunder method is used for Ren'Py compatibility, it allows you to call the character like normal.
 
-    .. code-block:: python
+    .. code-block:: renpy
 
       define human = GameCharacter("Human")
 

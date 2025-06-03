@@ -116,7 +116,7 @@ Examples in Python
 Example in Ren'Py
 *****************
 
-.. code-block:: python
+.. code-block:: renpy
 
    define human = GameCharacter("Human")
 
@@ -124,7 +124,7 @@ Example in Ren'Py
 
       human "Hello, world!"
 
-.. code-block:: text
+.. code-block:: renpy
 
    define human = GameCharacter("Human", data={"inventory": ["sword", "shield"]})
 
@@ -298,7 +298,7 @@ Output:
 Example in Ren'Py
 *****************
 
-.. code-block:: python
+.. code-block:: renpy
 
    ...
    

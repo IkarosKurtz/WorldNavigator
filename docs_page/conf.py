@@ -1,6 +1,8 @@
 import os
+from pathlib import Path
 import sys
 sys.path.insert(0, os.path.abspath('../src/worldnavigator'))
+sys.path.append(str(Path('./source/ext').resolve()))
 
 project = 'WorldNavigator'
 copyright = '2025, IkarosKurtz'
@@ -15,6 +17,7 @@ extensions = [
   'sphinx.ext.coverage',
   'sphinx.ext.napoleon',
   'sphinx_copybutton',
+  'renpydoc'
   # 'autoapi.extension'
 ]
 
