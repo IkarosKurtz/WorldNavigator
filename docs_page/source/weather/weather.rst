@@ -9,8 +9,8 @@ The Weather module provides a comprehensive system for simulating various weathe
    :undoc-members:
 
 
-Types
------
+Weather Types
+-------------
 
 .. autodata:: worldnavigator.types.types.Weather
    :annotation:
