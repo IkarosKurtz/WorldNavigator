@@ -14,6 +14,8 @@ World
 World Parser
 ------------
 
+
+
 .. automodule:: worldnavigator.core.world_parser
    :members:
    :show-inheritance:

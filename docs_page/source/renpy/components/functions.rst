@@ -60,5 +60,3 @@ Required Functions
   It sets up the essential event listeners required for WorldNavigator to function properly.
   Without calling this function, your game will not work correctly.
 
-
-
