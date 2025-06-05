@@ -121,3 +121,62 @@ For the ``after_load`` label, you have two options:
 1. If you already have this label defined, add the call to :func:`register_basic_listeners` and remove the label from ``special_labels.rpy``
    
 2. If you don't have this label defined, you can use the one provided in ``special_labels.rpy``
+
+Basics
+------
+
+After you have installed everything correctly, is time to start building your game. First of all, you need to define your characters.
+
+.. code-block:: renpy
+
+  define e = GameCharacter("Eileen")
+  define b = GameCharacter("Bob")
+  define mc = GameCharacter("player", dynamic=True) # The player character
+
+Now, we need to choose where are `Eileen` and `Bob` located, but for this we need to define our world entrypoint, see :ref:`World` for more information. 
+This entrypoint basically is where all the characters will be located when they are added to the world, to do this we call the method :meth:`~worldnavigator.core.world.World.character_entrypoint`, this method receives a string with the name of the location or the :py:class:`~worldnavigator.locations.base_location.Location` object itself.
+
+.. attention:: 
+
+  From now on, we will be modifying the ``start`` label, because every new game will start from this label, so we need to set up our world here. Is not necessary doing it in the ``after_load`` label as well.
+
+.. code-block:: renpy
+
+  label start:
+    python:
+       register_basic_listeners()
+
+       world.character_entrypoint('School') # We set the school as our entrypoint
+
+
+
+After doing this, we can add our characters previously defined to the world, to do so we use the method
+:meth:`~worldnavigator.core.world.World.add_character`, this method receives a :py:class:`~worldnavigator.core.character.GameCharacter` object.
+
+.. code-block:: renpy
+
+    label start:
+      python:
+        register_basic_listeners()
+
+        world.character_entrypoint('School') # We set the school as our entrypoint
+
+        world.add_character(e) # We add Eileen to the world, she will be located at the school
+        world.add_character(b) # We add Bob to the world, he will be located at the school
+
+If you want to move a character to a different location, let's say we want to move `Eileen` to her bedroom,
+we can do this by using the method :meth:`~worldnavigator.core.world.World.move_character`, this method receives
+a :py:class:`~worldnavigator.core.character.GameCharacter` object and a string with the name of the new location or the :py:class:`~worldnavigator.locations.base_location.Location` object itself.
+
+.. code-block:: renpy
+
+  label start:
+    python:
+      register_basic_listeners()
+
+      world.character_entrypoint('School') # We set the school as our entrypoint
+
+      world.add_character(e) # We add Eileen to the world, she will be located at the school
+      world.add_character(b) # We add Bob to the world, he will be located at the school
+
+      world.move_character(e, 'Bedroom') # We move Eileen to her bedroom
