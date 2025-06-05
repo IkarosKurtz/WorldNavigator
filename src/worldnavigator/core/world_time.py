@@ -262,7 +262,7 @@ class WorldTime:
     """
     return self._freeze_time
 
-  def override_time(self, hours: int, minutes: int) -> None:
+  def override_time(self, hours: int, minutes: int = None) -> None:
     """
     Override the current time, **is important to know that hours are in 24-hour format**,
     even if you use the 12:00 format in the :py:meth:`~worldnavigator.core.world_time.WorldTime.show_clock` method.
@@ -277,8 +277,10 @@ class WorldTime:
     else:
       raise ValueError(f"Hours must be between 0 and 23, got {hours}")
 
-    if 0 <= minutes <= 59:
+    if minutes is not None and 0 <= minutes <= 59:
       self._clock.minutes = minutes
+    elif minutes is None:
+      self._clock.minutes = 0
     else:
       raise ValueError(f"Minutes must be between 0 and 59, got {minutes}")
 

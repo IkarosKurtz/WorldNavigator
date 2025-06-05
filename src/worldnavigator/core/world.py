@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING, List, Dict, Union
 
-from worldnavigator.core.world_time import WorldTime
 from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError, CharacterAlreadyPresentError
 
 if TYPE_CHECKING:
@@ -29,6 +28,8 @@ class World:
     self._total_characters: list['GameCharacter'] = []
     self._population = 0
     self._character_entrypoint: 'Location' = None
+    self._player: 'GameCharacter' = None
+    self._player_current_location: 'Location' = None
 
   #################################################
   ################### Properties ##################
@@ -49,11 +50,11 @@ class World:
     return list(self._locations.values())
 
   @property
-  def time(self) -> WorldTime:
+  def player_current_location(self) -> 'Location':
     """
-    Manager from the world time
+    The current location of the player
     """
-    return self._time
+    return self._player_current_location
 
   #################################################
   ################ Private Methods ################
@@ -202,13 +203,40 @@ class World:
       last_location = self.get_location(last_location)
 
     # Why do you want to move a character to the same location?
-    if last_location.name == location.name:
+    if last_location is not None and last_location.name == location.name:
       raise CharacterAlreadyPresentError(f'Character "{character.name}" is already in "{location.name}"')
 
-    last_location.remove_character(character)
+    if last_location is not None:
+      last_location.remove_character(character)
 
     location.add_character(character)
     return True
+
+  def add_player(self, character: 'GameCharacter', location: Union[str, 'Location']) -> None:
+    """
+    Set the player character in the selected location, is not necessary use the :meth:`~worldnavigator.core.world.World.add_character`with player because is a special case.
+
+    :param GameCharacter character: The character to set as the player.
+    :param Union[str, Location] location: The location to set as the player's location.
+    """
+    if isinstance(location, str):
+      location = self.get_location(location)
+
+    self._player = character
+    self._player.current_location = location
+    self._player_current_location = location
+
+  def move_player(self, location: Union[str, 'Location']) -> None:
+    """
+    Move the player character to a different location.
+
+    :param Union[str, Location] location: The location to move the player to.
+    """
+    if isinstance(location, str):
+      location = self.get_location(location)
+
+    self._player.current_location = location
+    self._player_current_location = location
 
   #################################################
   ################ Dunder Methods #################

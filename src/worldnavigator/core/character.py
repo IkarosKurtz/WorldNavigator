@@ -105,10 +105,12 @@ class GameCharacter(Generic[ExtraData]):
     raise AttributeError(f"'{type(self).__name__}' object has no attribute '{item}'")
 
   def __eq__(self, value: object) -> bool:
-    if not isinstance(value, GameCharacter):
-      return False
+    if isinstance(value, GameCharacter):
+      return self.name == value.name
+    elif isinstance(value, str):
+      return self.name == value
 
-    return self.name == value.name
+    return False
 
   def __str__(self):
     return f'GameCharacter(name="{self.name}", data="{self.data}")'

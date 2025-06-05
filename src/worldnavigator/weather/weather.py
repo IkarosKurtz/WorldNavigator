@@ -225,25 +225,40 @@ class WorldWeather:
     if self._current_weather['weather'] == 'Stormy' and random.random() < self._thunder_prob and self._thunder_listener:
       self._thunder_listener()
 
-  def override_weather(self, current_weather: Weather, next_weather: Weather, duration: int) -> None:
+  def override_current_weather(self, desired_weather: Weather, duration: int) -> None:
     """
-    Override the current weather, and set the next weather after the duration.
+    Override the current weather, this will erase the current weather and steps with the new desired weather.
+
     This will trigger the listener for the weather change.
 
-    :param Weather current_weather: The current weather to override.
-    :param Weather next_weather: The next weather to set after the duration.
-    :param int duration: The duration of the override.
+    :param Weather desired_weather: The weather to set as the current weather.
+    :param int duration: The duration of the current weather.
     """
-    current_conditions = self._generate_weather(current_weather)
-    next_conditions = self._generate_weather(next_weather)
+    current_conditions = self._generate_weather(desired_weather)
+    next_conditions = self._generate_weather(desired_weather)
 
     transition_gen = self._transition_weather(current_conditions, next_conditions, duration)
 
-    self._weather_steps.extend(transition_gen[1:])
+    # We want to override the current weather and steps with the new desired weather
+    self._weather_steps = transition_gen[1:]
     self._current_weather = transition_gen[0]
 
     if self._weather_change_listener:
       self._weather_change_listener(self._current_weather, self._weather_steps)
+
+  def override_weather_next_weather(self, desired_weather: Weather, duration: int) -> None:
+    """
+    Override the next weather, this will add the new desired weather to the list of weather steps.
+
+    :param Weather desired_weather: The weather to set as the next weather.
+    :param int duration: The duration of the next weather.
+    """
+    current_conditions = self._generate_weather(self._weather_steps[-1])
+    next_conditions = self._generate_weather(desired_weather)
+
+    transition_gen = self._transition_weather(current_conditions, next_conditions, duration)
+
+    self._weather_steps.extend(transition_gen[1:])
 
   def throw_thunder(self) -> None:
     """
