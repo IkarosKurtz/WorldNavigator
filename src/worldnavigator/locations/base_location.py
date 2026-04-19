@@ -1,8 +1,13 @@
-from typing import TYPE_CHECKING, Dict, List, Tuple, Optional
+import sys
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from worldnavigator.core.condition_pipeline import ConditionalPipeline
-from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError
-from worldnavigator.errors.missing_day_bg import MissingDayBackgroundError
+from worldnavigator.errors import (
+  CharacterAlreadyPresentError,
+  CharacterNotFoundError,
+  DuplicatedLocationError,
+  LocationNotFoundError,
+)
 from worldnavigator.observer.observer import Observer
 from worldnavigator.types.typed_dicts import BackgroundsDict
 
@@ -24,11 +29,11 @@ class LocationBackground:
   """
 
   def __init__(self, backgrounds: BackgroundsDict):
-    day_background = backgrounds.get('day', None)
+    day_background = backgrounds.get("day", None)
 
     self._day: str = day_background
-    self._afternoon: str = backgrounds.get('afternoon', self.day)
-    self._night: str = backgrounds.get('night', self.day)
+    self._afternoon: str = backgrounds.get("afternoon", self.day)
+    self._night: str = backgrounds.get("night", self.day)
 
   def __str__(self):
     return f'(Day: "{self.day}", Afternoon: "{self.afternoon}", Night: "{self.night}")'
@@ -112,34 +117,42 @@ class Location(Observer):
   or outdoor.
   """
 
-  def __init__(self,
-               *,
-               name: str,
-               backgrounds: BackgroundsDict,
-               objects: Optional[dict[str, 'WorldObject']] = None,
-               is_indoor: bool = False):
+  def __init__(
+    self,
+    *,
+    name: str,
+    description: str,
+    backgrounds: Optional[BackgroundsDict] = None,
+    objects: Optional[dict[str, "WorldObject"]] = None,
+    is_indoor: bool = True,
+  ):
     """
     :param str name: The name of the location.
-    :param BackgroundsDict backgrounds: A dictionary containing the backgrounds for different times of day.
+    :param Optional[BackgroundsDict] backgrounds: A dictionary containing the backgrounds for different times of day (optional).
     :param Optional[Dict[str, WorldObject]] objects: A dictionary of objects present in the location (optional).
-    :param bool is_indoor: A boolean indicating if the location is indoors (default is False).
+    :param bool is_indoor: A boolean indicating if the location is indoors (default is True).
 
     :raises MissingDayBackgroundError: If the day background is not provided.
     """
     super().__init__()
     self._name = name
+    self._description = description
 
-    if backgrounds.get('day', None) is None:
-      raise MissingDayBackgroundError(self._name)
+    if "renpy" in sys.modules:
+      if backgrounds is None or "day" not in backgrounds:
+        raise ValueError(f'Location "{name}" must have a "day" background when running in RenPy.')
 
-    self._backgrounds = LocationBackground(backgrounds)
-    self._objects: dict[str, 'WorldObject'] = objects if objects is not None else {}
+      self._backgrounds = LocationBackground(backgrounds)
+    else:
+      self._backgrounds = LocationBackground({"day": "default_day_background"})
+
+    self._objects: dict[str, "WorldObject"] = objects if objects is not None else {}
     self._is_indoor = is_indoor
 
     self._condition_pipeline = ConditionalPipeline()
 
-    self._connections: dict[str, 'Location'] = {}
-    self._characters: list['GameCharacter'] = []
+    self._connections: dict[str, "Location"] = {}
+    self._characters: list["GameCharacter"] = []
 
   #################################################
   ################### Properties ##################
@@ -151,12 +164,17 @@ class Location(Observer):
     return self._name
 
   @property
+  def description(self) -> str:
+    """Returns the description of the location."""
+    return self._description
+
+  @property
   def backgrounds(self) -> LocationBackground:
     """Returns the LocationBackground instance for the location."""
     return self._backgrounds
 
   @property
-  def objects(self) -> Dict[str, 'WorldObject']:
+  def objects(self) -> Dict[str, "WorldObject"]:
     """Returns the objects present in the location."""
     return self._objects
 
@@ -166,12 +184,12 @@ class Location(Observer):
     return self._is_indoor
 
   @property
-  def connections(self) -> Dict[str, 'Location']:
+  def connections(self) -> Dict[str, "Location"]:
     """Returns the connections to other locations."""
     return self._connections
 
   @property
-  def characters(self) -> List['GameCharacter']:
+  def characters(self) -> List["GameCharacter"]:
     """Returns the characters present in the location."""
     return self._characters
 
@@ -184,7 +202,7 @@ class Location(Observer):
   ################ Public Methods #################
   #################################################
 
-  def get_location(self, location_name: str) -> 'Location':
+  def get_location(self, location_name: str) -> "Location":
     """
     Retrieves a connected location by name.
 
@@ -198,7 +216,7 @@ class Location(Observer):
 
     return self._connections[location_name]
 
-  def get_locations(self) -> List['Location']:
+  def get_locations(self) -> List["Location"]:
     """
     Returns a list of all connected locations.
 
@@ -206,7 +224,7 @@ class Location(Observer):
     """
     return list(self._connections.values())
 
-  def connect_with(self, other_location: 'Location') -> None:
+  def connect_with(self, other_location: "Location") -> None:
     """
     Connects this location with another location.
 
@@ -230,7 +248,7 @@ class Location(Observer):
 
     self.connections.pop(location_name)
 
-  def add_object(self, obj: 'WorldObject'):
+  def add_object(self, obj: "WorldObject"):
     """
     Adds an object to the location.
 
@@ -238,7 +256,7 @@ class Location(Observer):
     """
     self._objects[obj.name] = obj
 
-  def remove_object(self, obj_name: str) -> 'WorldObject':
+  def remove_object(self, obj_name: str) -> "WorldObject":
     """
     Removes an object from the location.
 
@@ -249,7 +267,7 @@ class Location(Observer):
     """
     return self._objects.pop(obj_name)
 
-  def get_object(self, obj_name: str) -> 'WorldObject':
+  def get_object(self, obj_name: str) -> "WorldObject":
     """
     Retrieves an object from the location by name.
 
@@ -258,9 +276,12 @@ class Location(Observer):
 
     :return: The WorldObject instance.
     """
+    if obj_name not in self._objects:
+      raise KeyError(f'Object "{obj_name}" not found in location "{self.name}"')
+
     return self._objects[obj_name]
 
-  def add_character(self, character: 'GameCharacter') -> None:
+  def add_character(self, character: "GameCharacter") -> None:
     """
     Adds a character to the location.
 
@@ -273,10 +294,10 @@ class Location(Observer):
 
     character.current_location = self.name
 
-    self.trigger('character_added', {'name': character.name, 'location': self.name})
+    self.trigger("character_added", character, self)
     self._characters.append(character)
 
-  def remove_character(self, character: 'GameCharacter') -> None:
+  def remove_character(self, character: "GameCharacter") -> None:
     """
     Removes a character from the location.
 
@@ -287,7 +308,7 @@ class Location(Observer):
     if character not in self._characters:
       raise CharacterNotFoundError(f'Character "{character.name}" is not in "{self.name}"')
 
-    self.trigger('character_removed', {'name': character.name, 'location': self.name})
+    self.trigger("character_removed", character, self)
     self._characters.remove(character)
 
   def who_is_here(self) -> str:
@@ -296,7 +317,7 @@ class Location(Observer):
 
     :return: A comma-separated string of character names.
     """
-    return ', '.join([character.name for character in self._characters])
+    return ", ".join([character.name for character in self._characters])
 
   #################################################
   ################ Dunder Methods #################
@@ -305,14 +326,14 @@ class Location(Observer):
   def __getstate__(self) -> object:
     state = self.__dict__.copy()
 
-    del state['_condition_pipeline']
-    del state['_events']
-    print(f'Saving Location: {state}')
+    del state["_condition_pipeline"]
+    del state["_events"]
+    print(f"Saving Location: {state}")
 
     return state
 
   def __setstate__(self, state: object) -> None:
-    characters = state.pop('_characters')
+    characters = state.pop("_characters")
     self.__dict__.update(state)
 
     # TODO: Fix __str__ and __repr__
@@ -326,4 +347,4 @@ class Location(Observer):
     self._condition_pipeline = ConditionalPipeline()
     self._events = {}
 
-    print(f'Loading Location: {state}')
+    print(f"Loading Location: {state}")

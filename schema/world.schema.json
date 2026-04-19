@@ -14,6 +14,10 @@
       "items": {
         "type": "object",
         "properties": {
+          "description": {
+            "type": "string",
+            "description": "A description of the location"
+          },
           "is_indoor": {
             "type": "boolean",
             "description": "Whether the location is indoor or not"
@@ -26,11 +30,19 @@
             "type": "object",
             "description": "The backgrounds of the location",
             "properties": {
-              "day": { "type": "string" },
-              "afternoon": { "type": "string" },
-              "night": { "type": "string" }
+              "day": {
+                "type": "string"
+              },
+              "afternoon": {
+                "type": "string"
+              },
+              "night": {
+                "type": "string"
+              }
             },
-            "required": ["day"],
+            "required": [
+              "day"
+            ],
             "additionalProperties": true
           },
           "connected_locations": {
@@ -45,13 +57,17 @@
                 {
                   "type": "object",
                   "properties": {
-                    "name": { "type": "string" },
+                    "name": {
+                      "type": "string"
+                    },
                     "one_way": {
                       "type": "boolean",
                       "description": "Whether the connection is one-way"
                     }
                   },
-                  "required": ["name"],
+                  "required": [
+                    "name"
+                  ],
                   "additionalProperties": false
                 }
               ]
@@ -60,13 +76,21 @@
           "objects": {
             "type": "array",
             "description": "Optional objects in the location",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "default": []
           }
         },
-        "required": ["name", "backgrounds", "connected_locations"]
+        "required": [
+          "name",
+          "backgrounds",
+          "connected_locations"
+        ]
       }
     }
   },
-  "required": ["locations"]
+  "required": [
+    "locations"
+  ]
 }

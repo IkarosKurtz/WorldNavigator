@@ -4,77 +4,134 @@
     {
       "name": "School",
       "is_indoor": false,
-      "backgrounds": { "day": "bg school" },
-      "connected_locations": ["Park", "West Street", "Main Entrance"]
+      "backgrounds": {
+        "day": "bg school"
+      },
+      "connected_locations": [
+        "Park",
+        "West Street",
+        "Main Entrance"
+      ],
+      "description": "A large school building with multiple classrooms and facilities."
     },
     {
       "name": "Main Entrance",
       "is_indoor": true,
-      "backgrounds": { "day": "bg main_entrance" },
-      "connected_locations": ["Left Corridor", "Right Corridor"]
+      "backgrounds": {
+        "day": "bg main_entrance"
+      },
+      "connected_locations": [
+        "Left Corridor",
+        "Right Corridor"
+      ],
+      "description": "The main entrance of the school, bustling with students and staff."
     },
     {
       "name": "Left Corridor",
       "is_indoor": true,
-      "backgrounds": { "day": "bg left_corridor" },
-      "connected_locations": ["Club Room", "Classroom 2", "Classroom 3"]
+      "backgrounds": {
+        "day": "bg left_corridor"
+      },
+      "connected_locations": [
+        "Club Room",
+        "Classroom 2",
+        "Classroom 3"
+      ],
+      "description": "A long corridor with doors leading to various classrooms and the club room."
     },
     {
       "name": "Club Room",
       "is_indoor": true,
-      "backgrounds": { "day": "bg club_day", "afternoon": "bg club_afternoon" },
-      "connected_locations": []
+      "backgrounds": {
+        "day": "bg club_day",
+        "afternoon": "bg club_afternoon"
+      },
+      "connected_locations": [],
+      "description": "A cozy room where students gather for club activities and meetings."
     },
     {
       "name": "Classroom 2",
       "is_indoor": true,
-      "backgrounds": { "day": "bg class_room_day", "afternoon": "bg class_room_afternoon" },
-      "connected_locations": ["Closet"]
+      "backgrounds": {
+        "day": "bg class_room_day",
+        "afternoon": "bg class_room_afternoon"
+      },
+      "connected_locations": [
+        "Closet"
+      ],
+      "description": "A standard classroom with desks, chairs, and a chalkboard at the front."
     },
     {
       "name": "Closet",
       "is_indoor": true,
-      "backgrounds": { "day": "bg closet" },
-      "connected_locations": []
+      "backgrounds": {
+        "day": "bg closet"
+      },
+      "connected_locations": [],
+      "description": "A small storage closet filled with cleaning supplies and old equipment."
     },
     {
       "name": "Classroom 3",
       "is_indoor": true,
-      "backgrounds": { "day": "bg class_room_day", "afternoon": "bg class_room_afternoon" },
-      "connected_locations": []
+      "backgrounds": {
+        "day": "bg class_room_day",
+        "afternoon": "bg class_room_afternoon"
+      },
+      "connected_locations": [],
+      "description": "Another classroom similar to Classroom 2, used for different subjects."
     },
     {
       "name": "Right Corridor",
       "is_indoor": true,
-      "backgrounds": { "day": "bg right_corridor" },
+      "backgrounds": {
+        "day": "bg right_corridor"
+      },
       "connected_locations": [
-        { "name": "Man Bathroom", "one_way": true },
+        {
+          "name": "Man Bathroom",
+          "one_way": true
+        },
         "Woman Bathroom"
-      ]
+      ],
+      "description": "A corridor on the right side of the main entrance, leading to the bathrooms."
     },
     {
       "name": "Man Bathroom",
       "is_indoor": true,
-      "backgrounds": { "day": "bg man_bathroom" },
-      "connected_locations": []
+      "backgrounds": {
+        "day": "bg man_bathroom"
+      },
+      "connected_locations": [],
+      "description": "The men's bathroom, equipped with sinks, toilets, and mirrors."
     },
     {
       "name": "Woman Bathroom",
       "is_indoor": true,
-      "backgrounds": { "day": "bg woman_bathroom" },
-      "connected_locations": []
+      "backgrounds": {
+        "day": "bg woman_bathroom"
+      },
+      "connected_locations": [],
+      "description": "The women's bathroom, equipped with sinks, toilets, and mirrors."
     },
     {
       "name": "West Street",
       "is_indoor": false,
-      "backgrounds": { "day": "bg w_street" },
-      "connected_locations": []
+      "backgrounds": {
+        "day": "bg w_street"
+      },
+      "connected_locations": [],
+      "description": "A busy street on the west side of the school, lined with shops and cafes."
     },
     {
       "name": "Park",
       "is_indoor": false,
-      "backgrounds": { "day": "bg park" },
-      "connected_locations": ["West Street"]
+      "backgrounds": {
+        "day": "bg park"
+      },
+      "connected_locations": [
+        "West Street"
+      ],
+      "description": "A peaceful park with trees, benches, and a small pond, located near the school."
     }
   ]
 }
