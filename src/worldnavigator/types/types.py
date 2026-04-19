@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Literal
 
-
 BASIC_TYPES = (int, float, str, bool)
 """
 Basic types that can be used in the :class:`Params` class.
@@ -16,11 +15,11 @@ For now only this basic types are allowed, but maybe in the future there will be
 """
 
 Weather = Literal[
-  'Sunny',
-  'Cloudy',
-  'Rainy',
-  'Stormy',
-  'Snowy',
+  "Sunny",
+  "Cloudy",
+  "Rainy",
+  "Stormy",
+  "Snowy",
 ]
 """
 A type representing all possible weather states in the :class:`WorldWeather <worldnavigator.weather.weather.WorldWeather>` class.
@@ -61,17 +60,6 @@ class Params:
     :param dict[str, Union[Tuple[type, str], type]] params: Arbitrary keyword arguments representing parameters and their types.
     """
     self._params = params
-
-  @property
-  def items(self):
-    """
-    Returns the items of the parameters as a view of (key, value) pairs.
-
-    This property provides a convenient way to access the parameters stored in the instance.
-
-    :return: A view of the parameters' items as (key, value) pairs.
-    """
-    return self._params.items()
 
   #################################################
   ################### Properties ##################
@@ -126,13 +114,13 @@ class BaseCondition(ABC):
 
   def __init__(self) -> None:
     super().__init__()
-    self._next_condition: 'BaseCondition' = None
+    self._next_condition: "BaseCondition" = None
 
   def handle_next(self, context: ConditionPipelineContext):
     """
     Handles the next condition in the pipeline, if it exists.
     """
-    if (self._next_condition is not None and not context.denied):
+    if self._next_condition is not None and not context.denied:
       self._next_condition.handle(context)
 
   @abstractmethod
@@ -155,7 +143,7 @@ class BaseCondition(ABC):
     return other
 
   def __str__(self) -> str:
-    return f'{self.__class__.__name__}(next_condition={self._next_condition})'
+    return f"{self.__class__.__name__}(next_condition={self._next_condition})"
 
   def __repr__(self) -> str:
     return self.__str__()

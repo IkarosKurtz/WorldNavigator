@@ -35,19 +35,27 @@ def evaluate_events(cls: Any):
       raise ValueError(f'Event "{attr_name}" must be typed with Annotated')
 
     base_type, *metadata = get_args(attr_type)
-    if base_type.__name__ != 'str':
+
+    description = None
+    if len(metadata) > 1:
+      description = metadata[1]
+      params = metadata[0]
+    else:
+      params = metadata[0]
+
+    if base_type is not str:
       raise ValueError(f'Event "{attr_name}" must be a string (Annotated[str, ...])')
 
-    # We only care about the first metadata item
-    metadata_item = metadata[0]
-
-    # We need to check if Params is defined
-    if not isinstance(metadata_item, Params):
+    if not isinstance(params, Params):
       raise ValueError(f'Event "{attr_name}" must have Params metadata (Annotated[str, Params(...)])')
 
-    for key, value in metadata_item.items:
+    if description is not None and not isinstance(description, str):
+      raise ValueError(f'Description for event "{attr_name}" must be a string')
+
+    for key, value in params.params.items():
       if not is_valid_prop_value(value):
         raise ValueError(
-            f'Invalid metadata for "{key}" in attribute "{attr_name}". Must be a basic type or (basic type, str)')
+          f'Invalid metadata for "{key}" in attribute "{attr_name}". Must be a basic type or (basic type, str)'
+        )
 
   return cls

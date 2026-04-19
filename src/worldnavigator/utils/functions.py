@@ -1,4 +1,6 @@
-from typing import Union
+import functools
+from typing import Callable, Union
+
 from worldnavigator.types.types import BASIC_TYPES
 
 
@@ -24,3 +26,16 @@ def is_valid_prop_value(value: Union[type, tuple[type, str]]) -> bool:
     return isinstance(type_part, type) and issubclass(type_part, BASIC_TYPES) and isinstance(description, str)
 
   return False
+
+
+def is_a_valid_function(func: Callable) -> bool:
+  if not callable(func):
+    return False
+
+  if isinstance(func, functools.partial):
+    return False
+
+  if getattr(func, "__name__", None) == "<lambda>":
+    return False
+
+  return True
