@@ -1,22 +1,19 @@
 from dataclasses import dataclass, field
 from threading import Thread
-import time
 from typing import Callable, Literal, Tuple
 
-from worldnavigator.weather.weather import WorldWeather
-
 DateFormat = Literal[
-  'DD/MM/YYYY',
-  'MM/DD/YYYY',
-  'YYYY/MM/DD',
-  'DD-MM-YYYY',
-  'MM-DD-YYYY',
-  'YYYY-MM-DD',
+  "DD/MM/YYYY",
+  "MM/DD/YYYY",
+  "YYYY/MM/DD",
+  "DD-MM-YYYY",
+  "MM-DD-YYYY",
+  "YYYY-MM-DD",
 ]
 
 ClockFormat = Literal[
-  '12:00',
-  '24:00',
+  "12:00",
+  "24:00",
 ]
 
 
@@ -34,36 +31,34 @@ class WorldTime:
   but you can change the initial time.
   """
 
-  def __init__(self, initial_time: Time = Time()) -> None:
+  def __init__(self, initial_time: Time = Time(), amount_of_time: int = 5) -> None:
     """
+    :param WorldWeather weather: The weather of the world.
     :param Time initial_time: The initial time of the world, default is 12:00
+    :param int amount_of_time: The amount of time (in minutes) that passes each second, default is 5
     """
     self._clock = initial_time
     self._thread: Thread = None
-    self._time_amount = 5
-    self._freeze_time = False
+    self._time_amount = amount_of_time
 
     self._time_listener: Callable[[Time], None] = None
     self._date_listener: Callable[[list[int]], None] = None
 
-    self._weather = WorldWeather()
-    self._threads = 0
-
     self._date = [29, 5, 2025]
 
     self._months = [
-      ('January', 31),
-      ('February', 28),
-      ('March', 31),
-      ('April', 30),
-      ('May', 31),
-      ('June', 30),
-      ('July', 31),
-      ('August', 31),
-      ('September', 30),
-      ('October', 31),
-      ('November', 30),
-      ('December', 31)
+      ("January", 31),
+      ("February", 28),
+      ("March", 31),
+      ("April", 30),
+      ("May", 31),
+      ("June", 30),
+      ("July", 31),
+      ("August", 31),
+      ("September", 30),
+      ("October", 31),
+      ("November", 30),
+      ("December", 31),
     ]
 
   #################################################
@@ -78,18 +73,15 @@ class WorldTime:
     """
     return self._time_amount
 
-  @property
-  def weather(self) -> WorldWeather:
-    """
-    Get the weather of the world.
-    """
-    return self._weather
-
   #################################################
   ################ Private Methods ################
   #################################################
 
-  def _update_time(self) -> None:
+  #################################################
+  ################ Public Methods #################
+  #################################################
+
+  def update_time(self) -> None:
     """
     Updates the time in the background.
 
@@ -102,7 +94,6 @@ class WorldTime:
       self._clock.hours += 1
 
       # Change weather
-      self._weather.update_weather()
 
       self._clock.minutes = surplus
 
@@ -126,29 +117,6 @@ class WorldTime:
     if self._time_listener:
       self._time_listener(self._clock)
 
-  def update_time_thread(self) -> None:
-    """
-    Thread that updates the time in the background.
-    """
-    # This is used for Ren'Py compatibility
-    # When used in special screen `world_info`
-    if self._thread is None:
-      if not self._freeze_time:
-        self._update_time()
-      return
-
-    print('Starting time thread')
-    while True:
-      print(f'Time thread running, threads: {self._threads}')
-      if not self._freeze_time:
-        self._update_time()
-
-      time.sleep(1)
-
-  #################################################
-  ################ Public Methods #################
-  #################################################
-
   def listen_for_time(self, callback: Callable[[Time], None]) -> None:
     """
     Listen for the time, and call the callback with the current time, when time is updated.
@@ -165,7 +133,7 @@ class WorldTime:
     """
     self._date_listener = callback
 
-  def show_clock(self, format: ClockFormat = '24:00') -> str:
+  def show_clock(self, format: ClockFormat = "24:00") -> str:
     """
     Get the current time, in the format specified
 
@@ -173,22 +141,23 @@ class WorldTime:
 
     :return: The current time in the desired format
     """
-    hours = self._clock.hours if self._clock.hours >= 10 else f'0{self._clock.hours}'
-    minutes = self._clock.minutes if self._clock.minutes >= 10 else f'0{self._clock.minutes}'
+    hours = self._clock.hours if self._clock.hours >= 10 else f"0{self._clock.hours}"
+    minutes = self._clock.minutes if self._clock.minutes >= 10 else f"0{self._clock.minutes}"
 
-    if format == '12:00':
+    if format == "12:00":
       am_pm = "AM" if self._clock.hours < 12 else "PM"
-      display_hours = hours if self._clock.hours <= 12 else f'{self._clock.hours - 12:02d}'
+      display_hours = hours if self._clock.hours <= 12 else f"{self._clock.hours - 12:02d}"
 
-      return f'{display_hours}:{minutes} {am_pm}'
-    elif format == '24:00':
-      return f'{hours}:{minutes}'
+      return f"{display_hours}:{minutes} {am_pm}"
+    elif format == "24:00":
+      return f"{hours}:{minutes}"
 
-  def show_date(self, format: DateFormat = 'MM/DD/YYYY', full_month: bool = False) -> str:
+  def show_date(self, format: DateFormat = "DD/MM/YYYY", full_month: bool = False) -> str:
     """
     Get the current date, in the format specified
 
-    :param DateFormat format: The format of the date to return. By default it's 'MM/DD/YYYY'.
+    :param DateFormat format: The format of the date to return. By default it's 'DD/MM/YYYY'.
+    :param bool full_month: Whether to show the full month name instead of the number.
 
     :return: The current date in the format specified
     """
@@ -199,16 +168,19 @@ class WorldTime:
     if full_month:
       month = self._months[month - 1][0]
 
+    day = day if day >= 10 else f"0{day}"
+    month = month if isinstance(month, str) or month >= 10 else f"0{month}"
+
     formats = {
-      'DD-MM-YYYY': f'{day}-{month}-{year}',
-      'DD/MM/YYYY': f'{day}/{month}/{year}',
-      'MM-DD-YYYY': f'{month}-{day}-{year}',
-      'MM/DD/YYYY': f'{month}/{day}/{year}',
-      'YYYY-MM-DD': f'{year}-{month}-{day}',
-      'YYYY/MM/DD': f'{year}/{month}/{day}'
+      "DD-MM-YYYY": f"{day}-{month}-{year}",
+      "DD/MM/YYYY": f"{day}/{month}/{year}",
+      "MM-DD-YYYY": f"{month}-{day}-{year}",
+      "MM/DD/YYYY": f"{month}/{day}/{year}",
+      "YYYY-MM-DD": f"{year}-{month}-{day}",
+      "YYYY/MM/DD": f"{year}/{month}/{day}",
     }
 
-    return formats.get(format, f'{month}/{day}/{year}')
+    return formats.get(format, f"{month}/{day}/{year}")
 
   def get_time(self) -> Tuple[int, int]:
     """
@@ -217,22 +189,6 @@ class WorldTime:
     :return: The current time.
     """
     return (self._clock.hours, self._clock.minutes)
-
-  def start_time(self) -> None:
-    """
-    Start the time thread, this is used to update the time in the background.
-
-    Has two implementations depending where it's called, from Ren'Py or Python.
-    For Ren'Py it's using ``renpy.invoke_in_thread``, for Python it's using the ``Thread`` class,
-    they basically do the same thing.
-    """
-    if 'renpy' in globals():
-      print("Ren'Py detected, please use the special screen to start the time")
-    else:
-      self._thread = Thread(target=self.update_time_thread, daemon=True)
-      self._thread.start()
-
-    self._weather.update_weather()
 
   def adjust_time(self, amount: int) -> None:
     """
@@ -244,24 +200,6 @@ class WorldTime:
     >>> # 1 real time second = 5 game minutes
     """
     self._time_amount = amount
-
-  def freeze_time(self) -> None:
-    """
-    Freeze the time, so it doesn't change, this also stops weather from changing.
-    """
-    self._freeze_time = True
-
-  def unfreeze_time(self) -> None:
-    """
-    Unfreeze the time, so it can change again, this also starts weather from changing.
-    """
-    self._freeze_time = False
-
-  def is_time_frozen(self) -> bool:
-    """
-    Check if the time has been frozen, helpful for checking if the weather should change.
-    """
-    return self._freeze_time
 
   def override_time(self, hours: int, minutes: int = None) -> None:
     """
@@ -313,6 +251,9 @@ class WorldTime:
     if year:
       self._date[2] = year
 
+    if self._date_listener:
+      self._date_listener(self._date)
+
   #################################################
   ################ Dunder Methods #################
   #################################################
@@ -324,12 +265,12 @@ class WorldTime:
     state = self.__dict__.copy()
     hour, minute = self.get_time()
 
-    del state['_thread']
-    del state['_time_listener']
-    del state['_date_listener']
-    del state['_clock']
-    state['_clock'] = {'hours': hour, 'minutes': minute}
-    print(f'Saving time: {state}')
+    del state["_thread"]
+    del state["_time_listener"]
+    del state["_date_listener"]
+    del state["_clock"]
+    state["_clock"] = {"hours": hour, "minutes": minute}
+    print(f"Saving time: {state}")
 
     return state
 
@@ -337,11 +278,11 @@ class WorldTime:
     """
     Function for compatibility with pickle, used for renpy save/load.
     """
-    clock = state.pop('_clock')
+    clock = state.pop("_clock")
     self.__dict__.update(state)
-    print(f'Loading time: {state}')
+    print(f"Loading time: {state}")
 
-    self._clock = Time(clock['hours'], clock['minutes'])
+    self._clock = Time(clock["hours"], clock["minutes"])
 
     self._time_listener = None
     self._date_listener = None
