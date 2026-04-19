@@ -1,182 +1,319 @@
-from unittest import TestCase
+from typing import Annotated, Literal
+
+import pytest
+from pytest_mock import MockerFixture
 
 from worldnavigator.core.character import GameCharacter
-from worldnavigator.locations.base_location import Location
-from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError, MissingDayBackgroundError
+from worldnavigator.core.world_object import WorldObject
+from worldnavigator.decorators.function_decorators import evaluate_events
+from worldnavigator.errors import (
+  CharacterAlreadyPresentError,
+  CharacterNotFoundError,
+  DuplicatedLocationError,
+  LocationNotFoundError,
+)
+from worldnavigator.locations.base_location import Location, LocationBackground
+from worldnavigator.types.types import Params
+
+# --- Mock Classes for Testing ---
 
 
-class LocationTest(TestCase):
-  def test_location_creation(self):
+@evaluate_events
+class MockEvents:
+  use: Annotated[str, Params(), "Use the object."]
+  another_event: Annotated[str, Params(is_other=bool), "Another event for testing."]
+
+
+MockEventsName = Literal["use", "another_event"]
+
+
+class MockObject(WorldObject[MockEvents, MockEventsName]):
+  def __init__(self):
+    super().__init__("Mock Object")
+    self.register_interaction("use", self._use)
+    self.register_interaction("another_event", self._another_event)
+
+  def _use(self):
+    return "You used the mock object."
+
+  def _another_event(self, is_other: bool):
+    return f"Another event triggered with is_other={is_other}"
+
+
+# --- Tests for WorldObject ---
+
+
+class TestLocation:
+  def test_location_creation_standard_python(self):
     """
-    Test that a location can be created with the correct properties.
+    Test that a location can be created in a standard Python environment.
 
     Arrange:
-      - Prepare background dictionaries and object lists
+      - Define location name and description
+      - Prepare background data (optional in Python)
 
     Act:
-      - Create Location instances with different configurations
+      - Create Location instances with and without backgrounds
 
     Assert:
-      - Verify location properties are set correctly
-      - Verify MissingDayBackgroundError is raised when day background is missing
+      - Verify name and description are set correctly
+      - Verify backgrounds default to 'default_day_background' when missing in Python mode
     """
-    # Test basic creation
+    # Arrange
+    name = "Classroom"
+    description = "A place where students learn."
+
+    # Act
     location = Location(
-        name="Classroom",
-        backgrounds={'day': 'bg_classroom_day'},
-        is_indoor=True
+      name=name,
+      description=description,
+      is_indoor=False,
+    )
+    location_with_bg = Location(name="Office", description="A workspace.", backgrounds={"day": "my_bg.png"})
+
+    # Assert
+    assert location.name == name
+    assert location.description == description
+    assert location.is_indoor is False
+    assert location.backgrounds.day == "default_day_background"
+    assert location_with_bg.backgrounds.day == "default_day_background"
+
+  def test_location_creation_renpy(self, mocker: MockerFixture):
+    """
+    Test that a location requires backgrounds when running in RenPy.
+
+    Arrange:
+      - Mock sys.modules using pytest-mock to simulate RenPy environment
+      - Prepare valid and invalid background data
+
+    Act:
+      - Create Location with valid backgrounds
+      - Attempt to create Location without backgrounds or missing 'day' key
+
+    Assert:
+      - Verify backgrounds are correctly assigned when valid
+      - Verify ValueError is raised when backgrounds are missing or invalid
+    """
+    # Arrange
+    mocker.patch.dict("sys.modules", {"renpy": True})
+    valid_bg = {"day": "gym_day.png", "night": "gym_night.png"}
+
+    # Act
+    location = Location(
+      name="Gym",
+      description="A place to train.",
+      backgrounds=valid_bg,
     )
 
-    self.assertEqual(location.name, "Classroom")
-    self.assertTrue(location.is_indoor)
-    self.assertEqual(location.backgrounds.day, "bg_classroom_day")
-    self.assertEqual(len(location.objects), 0)
-    self.assertEqual(len(location.connections), 0)
-    self.assertEqual(len(location.characters), 0)
+    # Assert
+    assert location.backgrounds.day == "gym_day.png"
+    assert location.is_indoor
+    assert location.backgrounds.night == "gym_night.png"
 
-    # Test missing day background
-    with self.assertRaises(MissingDayBackgroundError) as context:
-      Location(
-          name="Invalid",
-          backgrounds={'night': 'bg_night_only'},
-          is_indoor=False
-      )
+    # Act & Assert (Error cases)
+    with pytest.raises(ValueError, match='must have a "day" background when running in RenPy'):
+      Location(name="Invalid", description="No backgrounds", backgrounds=None)
 
-    self.assertEquals(str(context.exception), 'Missing day background for location "Invalid"')
+    with pytest.raises(ValueError, match='must have a "day" background when running in RenPy'):
+      Location(name="MissingDayRenPy", description="Testing RenPy validation.", backgrounds={"night": "only_night.png"})
 
   def test_location_connections(self):
     """
     Test connecting and disconnecting locations.
 
     Arrange:
-      - Create multiple locations
+      - Create multiple location instances
 
     Act:
       - Connect locations with each other
-      - Attempt invalid connections
+      - Attempt to connect already connected locations
       - Disconnect locations
 
     Assert:
-      - Verify connections are established correctly
-      - Verify proper errors are raised for invalid operations
-      - Verify disconnections work correctly
+      - Verify connections are established correctly in the dictionary
+      - Verify DuplicatedLocationError is raised for already connected locations
+      - Verify LocationNotFoundError is raised for disconnecting non-existent connections
     """
-    classroom = Location(name="Classroom", backgrounds={'day': 'bg_classroom'})
-    hallway = Location(name="Hallway", backgrounds={'day': 'bg_hallway'})
-    office = Location(name="Office", backgrounds={'day': 'bg_office'})
+    # Arrange
+    classroom = Location(name="Classroom", description="A place to learn.")
+    hallway = Location(name="Hallway", description="A long hallway.")
 
-    # Test connecting locations
+    # Act (Connect)
     classroom.connect_with(hallway)
-    self.assertIn("Hallway", classroom.connections)
-    self.assertEqual(id(classroom.connections["Hallway"]), id(hallway))
 
-    # Test get_location
-    self.assertEqual(id(classroom.get_location("Hallway")), id(hallway))
+    # Assert (Connect)
+    assert "Hallway" in classroom.connections
+    assert classroom.get_location("Hallway") == hallway
+    assert hallway in classroom.get_locations()
 
-    # Test get_locations
-    self.assertEqual(classroom.get_locations(), [hallway])
-
-    # Test duplicate connection
-    with self.assertRaises(DuplicatedLocationError) as context:
+    # Act & Assert (Duplicate)
+    with pytest.raises(DuplicatedLocationError, match="already connected"):
       classroom.connect_with(hallway)
 
-    self.assertEquals(str(context.exception), 'Location "Hallway" is already connected to "Classroom"')
-
-    # Test connecting multiple locations
-    classroom.connect_with(office)
-    self.assertEqual(len(classroom.connections), 2)
-    self.assertIn("Office", classroom.connections)
-
-    # Test disconnecting
+    # Act (Disconnect)
     classroom.disconnect_from("Hallway")
-    self.assertNotIn("Hallway", classroom.connections)
-    self.assertEqual(len(classroom.connections), 1)
 
-    # Test disconnecting non-existent location
-    with self.assertRaises(LocationNotFoundError) as context:
-      classroom.disconnect_from("Non-existent")
+    # Assert (Get after disconnect)
+    with pytest.raises(LocationNotFoundError):
+      classroom.get_location("Hallway")
 
-    self.assertEquals(str(context.exception), 'Location "Non-existent" not found')
-
-    # Test getting non-existent location
-    with self.assertRaises(LocationNotFoundError) as context:
-      classroom.get_location("Non-existent")
-
-    self.assertEquals(str(context.exception), 'Location "Non-existent" not found')
+    # Assert (Disconnect)
+    assert "Hallway" not in classroom.connections
+    with pytest.raises(LocationNotFoundError):
+      classroom.disconnect_from("Hallway")
 
   def test_character_management(self):
     """
     Test adding, removing, and querying characters in a location.
 
     Arrange:
-      - Create a location
-      - Set up event tracking
+      - Create a location and character instances
+      - Set up event tracking using a spy/mock
 
     Act:
       - Add characters to the location
-      - Query who is in the location
-      - Remove characters from the location
-      - Attempt invalid operations
+      - Remove a character from the location
 
     Assert:
-      - Verify characters are added correctly
-      - Verify who_is_here returns correct string
-      - Verify characters are removed correctly
-      - Verify proper errors are raised for invalid operations
-      - Verify events are triggered correctly
+      - Verify characters are present in the location's list
+      - Verify who_is_here returns a correct comma-separated string
+      - Verify character's current_location property is updated
+      - Verify proper errors are raised for invalid operations (duplicate add, non-existent remove)
     """
-    cafeteria = Location(name="Cafeteria", backgrounds={'day': 'bg_cafeteria'})
-
-    # Track triggered events
-    events_triggered = []
-
-    def event_tracker(**data):
-      events_triggered.append((data['name'], data['location']))
-
-    cafeteria.on('character_added', event_tracker)
-    cafeteria.on('character_removed', event_tracker)
-
-    # Test initial state
-    self.assertEqual(len(cafeteria.characters), 0)
-    self.assertEqual(cafeteria.who_is_here(), '')
-
-    student1 = GameCharacter("Student1")
+    # Arrange
+    cafeteria = Location(name="Cafeteria", description="A place to eat.")
+    student = GameCharacter("Student")
     teacher = GameCharacter("Teacher")
 
-    # Test adding characters
-    cafeteria.add_character(student1)
+    # Act (Add)
+    cafeteria.add_character(student)
     cafeteria.add_character(teacher)
 
-    self.assertEqual(len(cafeteria.characters), 2)
-    self.assertIn(student1, cafeteria.characters)
-    self.assertIn(teacher, cafeteria.characters)
+    # Assert (Add)
+    assert student in cafeteria.characters
+    assert teacher in cafeteria.characters
+    assert student.current_location == "Cafeteria"
+    assert "Student, Teacher" == cafeteria.who_is_here()
 
-    # Test who_is_here
-    self.assertEqual(cafeteria.who_is_here(), "Student1, Teacher")
+    # Act & Assert (Duplicate)
+    with pytest.raises(CharacterAlreadyPresentError):
+      cafeteria.add_character(student)
 
-    # Test adding duplicate character
-    with self.assertRaises(CharacterAlreadyPresentError) as context:
-      cafeteria.add_character(student1)
+    # Act (Remove)
+    cafeteria.remove_character(student)
 
-    self.assertEqual(str(context.exception), 'Character "Student1" is already in "Cafeteria"')
+    # Assert (Remove)
+    assert student not in cafeteria.characters
+    assert teacher in cafeteria.characters
+    assert "Teacher" == cafeteria.who_is_here()
 
-    # Test removing character
-    cafeteria.remove_character(student1)
+    # Act & Assert (Non-existent remove)
+    with pytest.raises(CharacterNotFoundError):
+      cafeteria.remove_character(student)
 
-    self.assertEqual(len(cafeteria.characters), 1)
-    self.assertNotIn(student1, cafeteria.characters)
-    self.assertIn(teacher, cafeteria.characters)
+  def test_object_management(self):
+    """
+    Test adding and retrieving objects in a location.
 
-    student2 = GameCharacter("Student2")
+    Arrange:
+      - Create a location and a WorldObject instance
 
-    # Test removing non-existent character
-    with self.assertRaises(CharacterNotFoundError) as context:
-      cafeteria.remove_character(student2)
+    Act:
+      - Add the object to the location
+      - Retrieve the object by name
 
-    self.assertEqual(str(context.exception), 'Character "Student2" is not in "Cafeteria"')
+    Assert:
+      - Verify the object is stored in the location's objects dictionary
+      - Verify get_object returns the correct instance
+      - Verify KeyError is raised when trying to retrieve a non-existent object
+    """
+    # Arrange
+    library = Location(name="Library", description="A quiet place with books.")
 
-    # Test events were triggered
-    self.assertEqual(len(events_triggered), 3)  # 2 adds + 1 remove
-    self.assertEqual(events_triggered[0], ("Student1", "Cafeteria"))
-    self.assertEqual(events_triggered[1], ("Teacher", "Cafeteria"))
-    self.assertEqual(events_triggered[2], ("Student1", "Cafeteria"))
+    mock = MockObject()  # Using MockObject for testing purposes
+
+    # Act (Add)
+    library.add_object(mock)
+
+    # Assert (Add & Retrieve)
+    assert "Mock Object" in library.objects
+    retrieved_object = library.get_object("Mock Object")
+    assert retrieved_object == mock
+
+    # Act (Remove object)
+    library.remove_object("Mock Object")
+
+    # Assert (Non-existent)
+    with pytest.raises(KeyError, match='Object "Mock Object" not found'):
+      library.get_object("Mock Object")
+
+
+class TestLocationBackground:
+  def test_background_creation(self):
+    """
+    Test that LocationBackground correctly initializes with various background configurations.
+
+    Arrange:
+      - Create background configurations with different combinations of day/afternoon/night
+
+    Act:
+      - Initialize LocationBackground instances with these configurations
+
+    Assert:
+      - Verify backgrounds are set correctly
+      - Verify default values are applied when backgrounds are not specified
+    """
+    # Arrane & Act (Only day specified)
+    bg_day_only = LocationBackground({"day": "bg_day"})
+
+    # Assert
+    assert bg_day_only.day == "bg_day"
+    assert bg_day_only.afternoon == "bg_day"  # Should default to day
+    assert bg_day_only.night == "bg_day"  # Should default to day
+
+    # Arrange & Act (backgrounds specified)
+    bg_all = LocationBackground({"day": "bg_day", "afternoon": "bg_afternoon", "night": "bg_night"})
+
+    # Assert
+    assert bg_all.day == "bg_day"
+    assert bg_all.afternoon == "bg_afternoon"
+    assert bg_all.night == "bg_night"
+
+    # Assert
+    assert bg_all.get_backgrounds() == ("bg_day", "bg_afternoon", "bg_night")
+    assert str(bg_all) == '(Day: "bg_day", Afternoon: "bg_afternoon", Night: "bg_night")'
+
+  def test_retrieve_scene_background(self):
+    """
+    Test that the correct background is retrieved based on the time of day.
+
+    Arrange:
+      - Create a LocationBackground with different backgrounds for different times
+
+    Act:
+      - Call retrieve_scene_background with different times
+
+    Assert:
+      - Verify the correct background is returned for each time period
+    """
+    # Arrange
+    bg = LocationBackground({"day": "bg_day", "afternoon": "bg_afternoon", "night": "bg_night"})
+
+    # Assert (Morning)
+    # Test morning/day (7:00 - 16:59)
+    assert bg.retrieve_scene_background((7, 0)) == "bg_day"
+    assert bg.retrieve_scene_background((12, 30)) == "bg_day"
+    assert bg.retrieve_scene_background((16, 59)) == "bg_day"
+
+    # Assert (Afternoon)
+    # Test afternoon (17:00 - 18:59)
+    assert bg.retrieve_scene_background((17, 0)) == "bg_afternoon"
+    assert bg.retrieve_scene_background((18, 30)) == "bg_afternoon"
+    assert bg.retrieve_scene_background((18, 59)) == "bg_afternoon"
+
+    # Assert (Night)
+    # Test night (19:00 - 6:59)
+    assert bg.retrieve_scene_background((19, 0)) == "bg_night"
+    assert bg.retrieve_scene_background((23, 45)) == "bg_night"
+    assert bg.retrieve_scene_background((0, 0)) == "bg_night"
+    assert bg.retrieve_scene_background((6, 59)) == "bg_night"

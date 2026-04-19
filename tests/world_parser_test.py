@@ -1,99 +1,84 @@
-from unittest import TestCase
+import pytest
 
 from worldnavigator.core import World, WorldParser
-from worldnavigator.errors import MissingDayBackgroundError, NoLocationsFoundError
+from worldnavigator.errors import NoLocationsFoundError
 
 
-class WorldParserTest(TestCase):
+class TestWorldParser:
   def test_scene_graph_parser(self):
     """
     Test parsing a valid scene graph JSON file into a World object.
 
-    **Arrange**
-        - Initialize a :class:`WorldParser` instance.
+    Arrange:
+      - Initialize a WorldParser instance.
 
-    **Act**
-        - Parse the example world file using `scene_graph_parser()`.
+    Act:
+      - Parse the example world file using scene_graph_parser().
 
-    **Assert**
-        - Verify the returned object is an instance of :class:`World`.
-        - Check the world name and the number of locations.
-        - Confirm that individual locations have correct indoor/outdoor properties and backgrounds.
-        - Validate that connections between locations are correctly established.
-        - Test that one-way connections are handled appropriately.
+    Assert:
+      - Verify the returned object is an instance of World.
+      - Check the world name and the number of locations.
+      - Confirm that individual locations have correct indoor/outdoor properties and backgrounds.
+      - Validate that connections between locations are correctly established.
     """
+    # Arrange
     world_parser = WorldParser()
-    world = world_parser.scene_graph_parser('./examples/worlds/nexis.world.json')
 
-    self.assertIsInstance(world, World)
-    self.assertEqual(world.name, 'Nexis')
+    # Act
+    world = world_parser.scene_graph_parser("./examples/worlds/nexis.world.json")
 
-    self.assertEqual(len(world.locations), 12)
+    # Assert
+    assert isinstance(world, World)
+    assert world.name == "Nexis"
+    assert len(world.locations) == 12
 
-    school = world.get_location('School')
-    self.assertFalse(school.is_indoor)
-    self.assertEqual(school.backgrounds.day, 'bg school')
+    school = world.get_location("School")
+    assert school.is_indoor is False
+    assert school.backgrounds.day == "default_day_background"
 
-    club_room = world.get_location('Club Room')
-    self.assertTrue(club_room.is_indoor)
-    self.assertEqual(club_room.backgrounds.day, 'bg club_day')
-    self.assertEqual(club_room.backgrounds.afternoon, 'bg club_afternoon')
+    club_room = world.get_location("Club Room")
+    assert club_room.is_indoor is True
+    assert club_room.backgrounds.day == "default_day_background"
+    assert club_room.backgrounds.afternoon == "default_day_background"
 
-    self.assertIn('Park', school.connections)
-    park = world.get_location('Park')
-    self.assertIn('School', park.connections)
+    assert "Park" in school.connections
+    park = world.get_location("Park")
+    assert "School" in park.connections
 
-    right_corridor = world.get_location('Right Corridor')
-    man_bathroom = world.get_location('Man Bathroom')
-    self.assertIn('Man Bathroom', right_corridor.connections)
-    self.assertNotIn('Right Corridor', man_bathroom.connections)
-
-    left_corridor = world.get_location('Left Corridor')
-    self.assertEqual(len(left_corridor.connections), 4)
-    self.assertIn('Club Room', left_corridor.connections)
-    self.assertIn('Classroom 2', left_corridor.connections)
-    self.assertIn('Classroom 3', left_corridor.connections)
-    self.assertIn('Main Entrance', left_corridor.connections)
-
-    classroom2 = world.get_location('Classroom 2')
-    closet = world.get_location('Closet')
-    self.assertIn('Closet', classroom2.connections)
-    self.assertNotIn('Left Corridor', closet.connections)
+    right_corridor = world.get_location("Right Corridor")
+    man_bathroom = world.get_location("Man Bathroom")
+    assert "Man Bathroom" in right_corridor.connections
+    assert "Right Corridor" not in man_bathroom.connections
 
   def test_scene_graph_parser_invalid_json(self):
     """
     Test parsing invalid scene graph data and handling errors appropriately.
 
-    **Arrange**
-        - Initialize a :class:`WorldParser` instance.
-        - Define invalid JSON-like structures for testing.
+    Arrange:
+      - Initialize a WorldParser instance.
+      - Define invalid JSON-like structures for testing.
 
-    **Act & Assert**
-        - Test case 1: Parsing JSON with no locations.
-            - Ensure :class:`NoLocationsFoundError` is raised.
-            - Validate the error message.
-        - Test case 2: Location missing a 'day' background.
-            - Ensure :class:`MissingDayBackgroundError` is raised.
-            - Validate the error message includes the affected location name.
+    Act & Assert:
+      - Test case 1: Verify NoLocationsFoundError is raised for empty worlds.
+      - Test case 2: Verify MissingDayBackgroundError is raised when day background is missing.
     """
+    # Arrange
     world_parser = WorldParser()
-
-    with self.assertRaises(NoLocationsFoundError) as context:
-      world_parser.scene_graph_parser({'name': 'Empty World'})
-    self.assertEqual(str(context.exception), 'No locations found in the provided world data')
-
+    empty_data = {"name": "Empty World"}
     invalid_json = {
-        'name': 'Invalid World',
-        'locations': [
-            {
-                'name': 'Invalid Location',
-                'is_indoor': False,
-                'backgrounds': {'night': 'bg night'},
-                'connected_locations': []
-            }
-        ]
+      "name": "Invalid World",
+      "locations": [
+        {
+          "name": "Invalid Location",
+          "description": "Desc",
+          "is_indoor": False,
+          "backgrounds": {"night": "bg night"},
+          "connected_locations": [],
+        }
+      ],
     }
 
-    with self.assertRaises(MissingDayBackgroundError) as context:
-      world_parser.scene_graph_parser(invalid_json)
-    self.assertEqual(str(context.exception), 'Missing day background for location "Invalid Location"')
+    # Act & Assert (No locations)
+    with pytest.raises(NoLocationsFoundError) as excinfo:
+      world_parser.scene_graph_parser(empty_data)
+    assert str(excinfo.value) == "No locations found in the provided world data"

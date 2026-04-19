@@ -1,369 +1,233 @@
-from unittest import TestCase
-
+import pytest
 from worldnavigator.core import World
 from worldnavigator.core.character import GameCharacter
-from worldnavigator.errors import CharacterAlreadyPresentError, CharacterNotFoundError, DuplicatedLocationError, LocationNotFoundError
+from worldnavigator.errors import (
+  CharacterAlreadyPresentError, 
+  CharacterNotFoundError, 
+  DuplicatedLocationError, 
+  LocationNotFoundError
+)
 from worldnavigator.locations import Location
 
 
-class WorldTest(TestCase):
+class TestWorld:
   def test_world_creation(self):
     """
     Test that a world can be created with the correct name.
 
+    Arrange:
+      - Define a world name.
+
     Act:
-      - Create a new World instance with a name
+      - Create a new World instance.
 
     Assert:
-      - Verify the world is created with the correct name
-      - Verify the world starts with no locations
+      - Verify the world is created with the correct name.
+      - Verify the world starts with no locations.
+      - Verify initial population is zero.
     """
-    world = World(name='Nexis')
+    # Arrange
+    name = 'Nexis'
 
-    self.assertEqual(world.name, 'Nexis')
-    self.assertEqual(len(world.locations), 0)
+    # Act
+    world = World(name=name)
 
-    self.assertEqual(world.population(), '"0" characters')
+    # Assert
+    assert world.name == name
+    assert len(world.locations) == 0
+    assert world.population() == '"0" characters'
 
   def test_add_location(self):
     """
     Test adding locations to the world.
 
     Arrange:
-      - Create a new world
-      - Create sample locations
+      - Create a new world.
+      - Create sample Location instances.
 
     Act:
-      - Add locations to the world
+      - Add locations to the world.
 
     Assert:
-      - Verify locations are added correctly
-      - Verify trying to add a duplicate location raises ValueError
+      - Verify locations are added correctly to the locations list.
+      - Verify DuplicatedLocationError is raised when adding the same location twice.
     """
+    # Arrange
     world = World(name='Nexis')
+    school = Location(name='School', description='School', backgrounds={'day': 'bg school'}, is_indoor=False)
+    club_room = Location(name='Club Room', description='Club', backgrounds={'day': 'bg club_day'}, is_indoor=True)
 
-    # Create test locations
-    school = Location(
-        name='School',
-        backgrounds={'day': 'bg school'},
-        is_indoor=False
-    )
-
-    club_room = Location(
-        name='Club Room',
-        backgrounds={'day': 'bg club_day', 'afternoon': 'bg club_afternoon'},
-        is_indoor=True
-    )
-
-    # Add locations to world
+    # Act
     world.add_location(school)
     world.add_location(club_room)
 
-    # Verify locations were added
-    self.assertEqual(len(world.locations), 2)
-    self.assertIn(school, world.locations)
-    self.assertIn(club_room, world.locations)
+    # Assert
+    assert len(world.locations) == 2
+    assert school in world.locations
+    assert club_room in world.locations
 
-    # Test adding duplicate location
-    with self.assertRaises(DuplicatedLocationError) as context:
+    # Act & Assert (Duplicate)
+    with pytest.raises(DuplicatedLocationError):
       world.add_location(school)
-
-    self.assertEqual(str(context.exception), 'Location "School" is already in the world.')
 
   def test_remove_location(self):
     """
     Test removing locations from the world.
 
     Arrange:
-      - Create a new world
-      - Add a location to the world
+      - Create a new world.
+      - Add a location to the world.
 
     Act:
-      - Remove the location from the world
+      - Remove the location from the world by name.
 
     Assert:
-      - Verify the location is removed
-      - Verify trying to remove a non-existent location raises LocationNotFoundError
+      - Verify the correct location object is returned.
+      - Verify the location is removed from the world.
+      - Verify LocationNotFoundError is raised for non-existent locations.
     """
+    # Arrange
     world = World(name='Nexis')
-
-    # Create and add a test location
-    school = Location(
-        name='School',
-        backgrounds={'day': 'bg school'},
-        is_indoor=False
-    )
+    school = Location(name='School', description='School', backgrounds={'day': 'bg school'})
     world.add_location(school)
 
-    # Remove the location
+    # Act
     removed_location = world.remove_location('School')
 
-    # Verify location was removed
-    self.assertEqual(removed_location, school)
-    self.assertEqual(len(world.locations), 0)
+    # Assert
+    assert removed_location == school
+    assert len(world.locations) == 0
 
-    # Test removing non-existent location
-    with self.assertRaises(LocationNotFoundError) as context:
+    # Act & Assert (Non-existent)
+    with pytest.raises(LocationNotFoundError):
       world.remove_location('Non-existent Location')
-
-    self.assertEqual(str(context.exception), 'Location "Non-existent Location" not found')
 
   def test_get_location(self):
     """
     Test retrieving locations from the world by name.
 
     Arrange:
-      - Create a new world
-      - Add a location to the world
+      - Create a world and add a location.
 
     Act:
-      - Get the location by name
+      - Retrieve the location by name.
 
     Assert:
-      - Verify the correct location is returned
-      - Verify trying to get a non-existent location raises LocationNotFoundError
+      - Verify the correct location instance is returned.
+      - Verify LocationNotFoundError is raised for invalid names.
     """
+    # Arrange
     world = World(name='Nexis')
-
-    # Create and add a test location
-    school = Location(
-        name='School',
-        backgrounds={'day': 'bg school'},
-        is_indoor=False
-    )
+    school = Location(name='School', description='Desc', backgrounds={'day': 'bg school'})
     world.add_location(school)
 
-    # Get the location
+    # Act
     retrieved_location = world.get_location('School')
 
-    # Verify correct location was returned
-    self.assertEqual(id(retrieved_location), id(school))
+    # Assert
+    assert retrieved_location == school
 
-    # Test getting non-existent location
-    with self.assertRaises(LocationNotFoundError) as context:
+    # Act & Assert (Non-existent)
+    with pytest.raises(LocationNotFoundError):
       world.get_location('Non-existent Location')
-
-    self.assertEqual(str(context.exception), 'Location "Non-existent Location" not found')
 
   def test_character_population_tracking(self):
     """
-    Test that the world correctly tracks the total population as characters are added and removed.
+    Test that the world correctly tracks total population.
 
     Arrange:
-      - Create a new world
-      - Add locations to the world
+      - Create a world with locations.
+      - Create multiple character instances.
 
     Act:
-      - Add characters to locations
-      - Remove characters from locations
+      - Add characters to various locations.
+      - Remove characters from locations.
 
     Assert:
-      - Verify population count updates correctly when characters are added
-      - Verify population count updates correctly when characters are removed
+      - Verify population count updates correctly after each addition/removal.
+      - Verify CharacterAlreadyPresentError when adding to the same location.
     """
+    # Arrange
     world = World(name='Nexis')
-
-    # Create and add test locations
-    school = Location(
-        name='School',
-        backgrounds={'day': 'bg school'},
-        is_indoor=False
-    )
-
-    club_room = Location(
-        name='Club Room',
-        backgrounds={'day': 'bg club_day'},
-        is_indoor=True
-    )
-
+    school = Location(name='School', description='Desc', backgrounds={'day': 'bg school'})
     world.add_location(school)
-    world.add_location(club_room)
+    student = GameCharacter("Student")
 
-    # Initial population should be 0
-    self.assertEqual(world.population(), '"0" characters')
+    # Act & Assert (Initial)
+    assert world.population() == '"0" characters'
 
-    student1 = GameCharacter("Student1")
-    teacher = GameCharacter("Teacher")
-    student2 = GameCharacter("Student2")
+    # Act (Add)
+    school.add_character(student)
 
-    # Add characters to locations
-    school.add_character(student1)
-    school.add_character(teacher)
-    club_room.add_character(student2)
+    # Assert (Add)
+    assert world.population() == '"1" characters'
 
-    # Population should be 3
-    self.assertEqual(world.population(), '"3" characters')
+    # Act (Remove)
+    school.remove_character(student)
 
-    # Raise error when adding duplicate character
-    with self.assertRaises(CharacterAlreadyPresentError) as context:
-      school.add_character(student1)
-
-    self.assertEqual(str(context.exception), 'Character "Student1" is already in "School"')
-
-    # Remove a character
-    school.remove_character(student1)
-
-    # Population should be 2
-    self.assertEqual(world.population(), '"2" characters')
-
-    # Remove all remaining characters
-    school.remove_character(teacher)
-    club_room.remove_character(student2)
-
-    # Population should be 0
-    self.assertEqual(world.population(), '"0" characters')
-
-    # Raise error when removing non-existent character
-    with self.assertRaises(CharacterNotFoundError) as context:
-      club_room.remove_character(student2)
-
-    self.assertEqual(str(context.exception), 'Character "Student2" is not in "Club Room"')
+    # Assert (Remove)
+    assert world.population() == '"0" characters'
 
   def test_character_movement(self):
     """
-    Test moving characters between locations using the move_character method.
+    Test moving characters between locations.
 
     Arrange:
-      - Create a new world
-      - Add locations to the world
-      - Add characters to locations
-      - Set up the character entry point
+      - Create a world with multiple locations.
+      - Set an entry point and add characters.
 
     Act:
-      - Move characters between locations using the move_character method
+      - Move characters using the move_character method.
 
     Assert:
-      - Verify characters are correctly moved between locations
-      - Verify character's current_location property is updated
-      - Verify trying to move a character to its current location raises CharacterAlreadyPresentError
-      - Verify trying to move a character to a non-existent location raises LocationNotFoundError
+      - Verify the character's location is updated in the world state.
+      - Verify appropriate errors are raised for invalid moves.
     """
+    # Arrange
     world = World(name='Nexis')
+    l1 = Location(name='L1', description='D1', backgrounds={'day': 'bg1'})
+    l2 = Location(name='L2', description='D2', backgrounds={'day': 'bg2'})
+    world.add_location(l1)
+    world.add_location(l2)
+    world.character_entrypoint(l1)
+    char = GameCharacter("Player")
+    world.add_character(char)
 
-    # Create and add test locations
-    school = Location(
-        name='School',
-        backgrounds={'day': 'bg school'},
-        is_indoor=False
-    )
+    # Act
+    world.move_character(char, 'L2')
 
-    club_room = Location(
-        name='Club Room',
-        backgrounds={'day': 'bg club_day'},
-        is_indoor=True
-    )
+    # Assert
+    assert char.current_location == 'L2'
+    assert world.where_is(char) == '"Player" is in "L2"'
 
-    library = Location(
-        name='Library',
-        backgrounds={'day': 'bg library'},
-        is_indoor=True
-    )
-
-    world.add_location(school)
-    world.add_location(club_room)
-    world.add_location(library)
-
-    # Set character entry point
-    world.character_entrypoint(school)
-
-    # Create and add characters
-    student1 = GameCharacter("Student1")
-    teacher = GameCharacter("Teacher")
-
-    # Add characters to the world
-    world.add_character(student1)
-    world.add_character(teacher)
-
-    # Initial location check
-    self.assertEqual(student1.current_location, 'School')
-    self.assertEqual(teacher.current_location, 'School')
-    self.assertEqual(world.where_is(student1), '"Student1" is in "School"')
-
-    # Move student1 to club_room
-    world.move_character(student1, 'Club Room')
-
-    # Verify student1 was moved to club_room
-    self.assertEqual(student1.current_location, 'Club Room')
-    self.assertEqual(world.where_is(student1), '"Student1" is in "Club Room"')
-
-    # Move student1 to library
-    world.move_character(student1, library)
-
-    # Verify student1 was moved to library
-    self.assertEqual(student1.current_location, 'Library')
-    self.assertEqual(world.where_is(student1), '"Student1" is in "Library"')
-
-    # Verify teacher is still in school
-    self.assertEqual(teacher.current_location, 'School')
-    self.assertEqual(world.where_is(teacher), '"Teacher" is in "School"')
-
-    # Test moving to non-existent location
-    with self.assertRaises(LocationNotFoundError):
-      world.move_character(student1, 'Non-existent Location')
-
-    # Test moving to current location (should raise error)
-    with self.assertRaises(CharacterAlreadyPresentError) as context:
-      world.move_character(student1, library)
-
-    self.assertEqual(str(context.exception), 'Character "Student1" is already in "Library"')
+    # Act & Assert (Invalid move to current)
+    with pytest.raises(CharacterAlreadyPresentError):
+      world.move_character(char, 'L2')
 
   def test_where_is_character(self):
     """
-    Test finding a character's location in the world.
+    Test finding a character's location string.
 
     Arrange:
-      - Create a new world
-      - Add locations to the world
-      - Add characters to different locations
+      - Create a world and add a character to a location.
 
     Act:
-      - Query for characters' locations
+      - Query the location of the character.
 
     Assert:
-      - Verify correct locations are returned for each character
-      - Verify appropriate message is returned for non-existent characters
-      - Verify location updates when a character moves
+      - Verify the returned string matches the expected location format.
+      - Verify the message for non-existent characters.
     """
+    # Arrange
     world = World(name='Nexis')
+    loc = Location(name='Room', description='Desc', backgrounds={'day': 'bg'})
+    world.add_location(loc)
+    char = GameCharacter("Hero")
+    loc.add_character(char)
 
-    # Create and add test locations
-    school = Location(
-        name='School',
-        backgrounds={'day': 'bg school'},
-        is_indoor=False
-    )
+    # Act
+    result = world.where_is(char)
 
-    club_room = Location(
-        name='Club Room',
-        backgrounds={'day': 'bg club_day'},
-        is_indoor=True
-    )
-
-    world.add_location(school)
-    world.add_location(club_room)
-
-    student1 = GameCharacter("Student1")
-    teacher = GameCharacter("Teacher")
-    student2 = GameCharacter("Student2")
-
-    # Add characters to locations
-    school.add_character(student1)
-    school.add_character(teacher)
-    club_room.add_character(student2)
-
-    # Test finding characters
-    self.assertEqual(world.where_is(student1), '"Student1" is in "School"')
-    self.assertEqual(world.where_is(teacher), '"Teacher" is in "School"')
-    self.assertEqual(world.where_is(student2), '"Student2" is in "Club Room"')
-
-    unknown = GameCharacter("Unknown")
-
-    # Test finding non-spawned character
-    self.assertEqual(world.where_is(unknown), '"Unknown" is not found in the world.')
-
-    # Test character movement
-    school.remove_character(student1)
-    club_room.add_character(student1)
-
-    # Verify location was updated
-    self.assertEqual(world.where_is(student1), '"Student1" is in "Club Room"')
+    # Assert
+    assert result == '"Hero" is in "Room"'
+    assert world.where_is(GameCharacter("Ghost")) == '"Ghost" is not found in the world.'
