@@ -116,19 +116,13 @@ class BaseCondition(ABC):
     super().__init__()
     self._next_condition: "BaseCondition" = None
 
-  def handle_next(self, context: ConditionPipelineContext):
-    """
-    Handles the next condition in the pipeline, if it exists.
-    """
-    if self._next_condition is not None and not context.denied:
-      self._next_condition.handle(context)
-
   @abstractmethod
-  def handle(self, context: ConditionPipelineContext):
+  def handle(self, context: ConditionPipelineContext) -> bool:
     """
     Handles the condition you want to implement, can be check player inventory, check weather, check stats, etc.
 
     :param ConditionPipelineContext context: The context from the pipeline head, used to know if the chain was denied.
+    :return: True if the condition is met and the pipeline should continue, False otherwise.
     """
     pass
 
