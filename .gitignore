@@ -169,3 +169,8 @@ docs_page/_build
 .cursor/**
 .github/**
 .cursorrules
+test.py
+.geminiignore
+TODO.md
+*.md
+!AGENTS.md

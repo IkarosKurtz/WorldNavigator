@@ -10,23 +10,26 @@ WorldNavigator is a Python library for creating navigable world simulations with
 
 ### Running Tests
 
-The project uses Python's built-in `unittest` framework:
+The project uses `pytest` for testing along with `pytest-cov` for coverage analysis:
 
 ```bash
 # Run all tests
-python -m unittest discover -s tests -p "*_test.py"
+pytest
+
+# Run tests with coverage report
+pytest --cov=src/worldnavigator
 
 # Run a single test file
-python -m unittest tests.world_test
+pytest tests/world_test.py
 
 # Run a specific test class
-python -m unittest tests.world_test.WorldTest
+pytest tests/world_test.py::WorldTest
 
 # Run a specific test method
-python -m unittest tests.world_test.WorldTest.test_world_creation
+pytest tests/world_test.py::WorldTest::test_world_creation
 
-# Verbose output
-python -m unittest discover -s tests -p "*_test.py" -v
+# Run with verbose output
+pytest -v
 ```
 
 ### Building Documentation
@@ -198,10 +201,14 @@ Organize class code in this order:
 
 ### Testing Standards
 
-Write tests using the AAA pattern with clear docstrings:
+Write tests using the AAA pattern (Arrange, Act, Assert) with clear docstrings. Prefer functional tests with fixtures over class-based tests when possible:
 
 ```python
-def test_add_location(self):
+import pytest
+from worldnavigator.core.world import World
+from worldnavigator.locations.base_location import Location
+
+def test_add_location():
     """
     Test adding locations to the world.
 
@@ -214,7 +221,6 @@ def test_add_location(self):
 
     Assert:
       - Verify locations are added correctly
-      - Verify duplicate location raises error
     """
     # Arrange
     world = World(name='Nexis')
@@ -224,7 +230,8 @@ def test_add_location(self):
     world.add_location(location)
     
     # Assert
-    self.assertEqual(len(world.locations), 1)
+    assert len(world.locations) == 1
+    assert world.locations[0].name == 'School'
 ```
 
 ## Project Structure
