@@ -47,6 +47,7 @@ class WorldTime:
     self._date_listener: Callable[[list[int]], None] = None
 
     self._weather = WorldWeather()
+    self._threads = 0
 
     self._date = [29, 5, 2025]
 
@@ -228,7 +229,7 @@ class WorldTime:
     if 'renpy' in globals():
       print("Ren'Py detected, please use the special screen to start the time")
     else:
-      self._thread = Thread(target=self._update_time_thread, daemon=True)
+      self._thread = Thread(target=self.update_time_thread, daemon=True)
       self._thread.start()
 
     self._weather.update_weather()

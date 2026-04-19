@@ -1,7 +1,7 @@
 import random
 from typing import Callable, Dict
 
-from worldnavigator.types.typed_dicts import WeatherConditionsDict, GeneratedWeatherDict
+from worldnavigator.types.typed_dicts import GeneratedWeatherDict, WeatherConditionsDict
 from worldnavigator.types.types import Weather
 
 
@@ -18,19 +18,19 @@ class WorldWeather:
 
   def __init__(self) -> None:
     self._weather: Dict[Weather, WeatherConditionsDict] = {
-      'Sunny': {'temperature': (25, 35), 'humidity': (10, 30), 'wind': (0, 10), 'clouds': (0, 20)},
-      'Cloudy': {'temperature': (15, 25), 'humidity': (40, 60), 'wind': (5, 15), 'clouds': (60, 100)},
-      'Rainy': {'temperature': (10, 20), 'humidity': (70, 90), 'wind': (10, 20), 'clouds': (80, 100)},
-      'Stormy': {'temperature': (8, 18), 'humidity': (80, 100), 'wind': (20, 40), 'clouds': (90, 100)},
-      'Snowy': {'temperature': (-5, 5), 'humidity': (60, 80), 'wind': (5, 15), 'clouds': (70, 100)}
+      "Sunny": {"temperature": (25, 35), "humidity": (10, 30), "wind": (0, 10), "clouds": (0, 20)},
+      "Cloudy": {"temperature": (15, 25), "humidity": (40, 60), "wind": (5, 15), "clouds": (60, 100)},
+      "Rainy": {"temperature": (10, 20), "humidity": (70, 90), "wind": (10, 20), "clouds": (80, 100)},
+      "Stormy": {"temperature": (8, 18), "humidity": (80, 100), "wind": (20, 40), "clouds": (90, 100)},
+      "Snowy": {"temperature": (-5, 5), "humidity": (60, 80), "wind": (5, 15), "clouds": (70, 100)},
     }
 
-    self._posible_transitions: Dict[Weather, Callable[[], str]] = {
-      'Sunny': ['Cloudy', 'Rainy'],
-      'Cloudy': ['Sunny', 'Rainy', 'Stormy', 'Snowy'],
-      'Rainy': ['Cloudy', 'Stormy'],
-      'Stormy': ['Rainy', 'Cloudy'],
-      'Snowy': ['Cloudy'],
+    self._posible_transitions: Dict[Weather, list[Weather]] = {
+      "Sunny": ["Cloudy", "Rainy"],
+      "Cloudy": ["Sunny", "Rainy", "Stormy", "Snowy"],
+      "Rainy": ["Cloudy", "Stormy"],
+      "Stormy": ["Rainy", "Cloudy"],
+      "Snowy": ["Cloudy"],
     }
 
     self._current_weather: GeneratedWeatherDict = {}
@@ -84,13 +84,15 @@ class WorldWeather:
     :return: A dictionary containing the weather state and its associated conditions.
     """
     conditions = self._weather[weather]
-    temperature = random.uniform(*conditions['temperature'])
-    humidity = random.uniform(*conditions['humidity'])
-    wind = random.uniform(*conditions['wind'])
-    clouds = random.uniform(*conditions['clouds'])
-    return {'weather': weather, 'temperature': temperature, 'humidity': humidity, 'wind': wind, 'clouds': clouds}
+    temperature = random.uniform(*conditions["temperature"])
+    humidity = random.uniform(*conditions["humidity"])
+    wind = random.uniform(*conditions["wind"])
+    clouds = random.uniform(*conditions["clouds"])
+    return {"weather": weather, "temperature": temperature, "humidity": humidity, "wind": wind, "clouds": clouds}
 
-  def _transition_weather(self, initial_conditions: GeneratedWeatherDict, final_conditions: GeneratedWeatherDict, duration_period: int) -> list[GeneratedWeatherDict]:
+  def _transition_weather(
+    self, initial_conditions: GeneratedWeatherDict, final_conditions: GeneratedWeatherDict, duration_period: int
+  ) -> list[GeneratedWeatherDict]:
     """
     Generates a list of weather conditions during a transition period.
 
@@ -103,21 +105,21 @@ class WorldWeather:
     steps = []
     for hour in range(1, duration_period + 1):
       temperature = self._interpolate(
-          initial_conditions['temperature'], final_conditions['temperature'], hour, duration_period)
-      humidity = self._interpolate(
-          initial_conditions['humidity'], final_conditions['humidity'], hour, duration_period)
-      wind = self._interpolate(
-          initial_conditions['wind'], final_conditions['wind'], hour, duration_period)
-      clouds = self._interpolate(
-          initial_conditions['clouds'], final_conditions['clouds'], hour, duration_period)
+        initial_conditions["temperature"], final_conditions["temperature"], hour, duration_period
+      )
+      humidity = self._interpolate(initial_conditions["humidity"], final_conditions["humidity"], hour, duration_period)
+      wind = self._interpolate(initial_conditions["wind"], final_conditions["wind"], hour, duration_period)
+      clouds = self._interpolate(initial_conditions["clouds"], final_conditions["clouds"], hour, duration_period)
 
-      steps.append({
-        'weather': final_conditions['weather'],
-        'temperature': temperature,
-        'humidity': humidity,
-        'wind': wind,
-        'clouds': clouds
-      })
+      steps.append(
+        {
+          "weather": final_conditions["weather"],
+          "temperature": temperature,
+          "humidity": humidity,
+          "wind": wind,
+          "clouds": clouds,
+        }
+      )
 
     return steps
 
@@ -125,7 +127,9 @@ class WorldWeather:
   ################ Public Methods #################
   #################################################
 
-  def listen_for_weather_change(self, callback: Callable[[GeneratedWeatherDict, list[GeneratedWeatherDict]], None]) -> None:
+  def listen_for_weather_change(
+    self, callback: Callable[[GeneratedWeatherDict, list[GeneratedWeatherDict]], None]
+  ) -> None:
     """
     Listen for the weather change, and call the callback with the current weather and the weather steps.
 
@@ -141,7 +145,9 @@ class WorldWeather:
     """
     self._thunder_listener = callback
 
-  def simulate_weather_with_transitions(self, total_duration: int, last_weather: Weather = 'Sunny') -> list[GeneratedWeatherDict]:
+  def simulate_weather_with_transitions(
+    self, total_duration: int, last_weather: Weather = "Sunny"
+  ) -> list[GeneratedWeatherDict]:
     """
     Simulates weather over a specified duration with transitions between states.
 
@@ -151,9 +157,9 @@ class WorldWeather:
     :param int total_duration: The total number of hours to simulate.
     :param Weather last_weather: The initial weather state to start the simulation from. Defaults to ``Sunny``.
 
-    :return: A list of dictionaries, where each dictionary represents the weather 
-             conditions for one hour. Each dictionary contains the ``weather`` state 
-             (e.g., ``Cloudy``) and a ``data`` dictionary with ``temperature``, ``humidity``, 
+    :return: A list of dictionaries, where each dictionary represents the weather
+             conditions for one hour. Each dictionary contains the ``weather`` state
+             (e.g., ``Cloudy``) and a ``data`` dictionary with ``temperature``, ``humidity``,
              ``wind``, and ``clouds`` values for that hour.
     """
     current_conditions = self._generate_weather(last_weather)
@@ -189,24 +195,26 @@ class WorldWeather:
     """
     Update the weather by generating a new weather condition and adding it to the list of weather steps or iterating over the list.
     """
-    print(f'WEATHER: {self._current_weather}')
-    print(f'WEATHER STEPS: {self._weather_steps}')
-    last_weather = self._current_weather.get('weather', None)
+    print(f"WEATHER: {self._current_weather}")
+    print(f"WEATHER STEPS: {self._weather_steps}")
+    last_weather = self._current_weather.get("weather", None)
 
     # TODO: Fix this, for some reason it skips the last current weather
     # when weather steps is empty
     if len(self._weather_steps) > 0:
       self._current_weather = self._weather_steps.pop(0)
 
-      if self._current_weather['weather'] == 'Stormy' and random.random() < self._thunder_prob and self._thunder_listener:
+      if (
+        self._current_weather["weather"] == "Stormy" and random.random() < self._thunder_prob and self._thunder_listener
+      ):
         self._thunder_listener()
 
-      if (last_weather is None or last_weather != self._current_weather['weather']) and self._weather_change_listener:
+      if (last_weather is None or last_weather != self._current_weather["weather"]) and self._weather_change_listener:
         self._weather_change_listener(self._current_weather, self._weather_steps)
       return
 
-    print('NEW WEATHER STEPS')
-    current_weather = self._current_weather.get('weather', 'Sunny')
+    print("NEW WEATHER STEPS")
+    current_weather = self._current_weather.get("weather", "Sunny")
     current_conditions = self._generate_weather(current_weather)
 
     transition_duration = random.randint(2, 6)
@@ -219,10 +227,10 @@ class WorldWeather:
     self._weather_steps.extend(transition_gen[1:])
     self._current_weather = transition_gen[0]
 
-    if (last_weather is None or last_weather != self._current_weather['weather']) and self._weather_change_listener:
+    if (last_weather is None or last_weather != self._current_weather["weather"]) and self._weather_change_listener:
       self._weather_change_listener(self._current_weather, self._weather_steps)
 
-    if self._current_weather['weather'] == 'Stormy' and random.random() < self._thunder_prob and self._thunder_listener:
+    if self._current_weather["weather"] == "Stormy" and random.random() < self._thunder_prob and self._thunder_listener:
       self._thunder_listener()
 
   def override_current_weather(self, desired_weather: Weather, duration: int) -> None:
@@ -246,14 +254,14 @@ class WorldWeather:
     if self._weather_change_listener:
       self._weather_change_listener(self._current_weather, self._weather_steps)
 
-  def override_weather_next_weather(self, desired_weather: Weather, duration: int) -> None:
+  def override_next_weather(self, desired_weather: Weather, duration: int) -> None:
     """
     Override the next weather, this will add the new desired weather to the list of weather steps.
 
     :param Weather desired_weather: The weather to set as the next weather.
     :param int duration: The duration of the next weather.
     """
-    current_conditions = self._generate_weather(self._weather_steps[-1])
+    current_conditions = self._generate_weather(self._weather_steps[-1]["weather"])
     next_conditions = self._generate_weather(desired_weather)
 
     transition_gen = self._transition_weather(current_conditions, next_conditions, duration)
@@ -262,8 +270,8 @@ class WorldWeather:
 
   def throw_thunder(self) -> None:
     """
-    Trigger the thunder listener, is just a helper method to trigger the thunder listener, 
-    doesn't have any other functionality.	
+    Trigger the thunder listener, is just a helper method to trigger the thunder listener,
+    doesn't have any other functionality.
     """
     if self._thunder_listener:
       self._thunder_listener()
@@ -277,8 +285,12 @@ class WorldWeather:
 
     :param list[GeneratedWeatherDict] weather_steps: The list of weather steps to set.
     """
+
     self._weather_steps = weather_steps[1:]
     self._current_weather = weather_steps[0]
+
+    if self._weather_change_listener:
+      self._weather_change_listener(self._current_weather, self._weather_steps)
 
   #################################################
   ################ Dunder Methods #################
@@ -290,10 +302,10 @@ class WorldWeather:
     """
     state = self.__dict__.copy()
 
-    del state['_weather_change_listener']
-    del state['_thunder_listener']
+    del state["_weather_change_listener"]
+    del state["_thunder_listener"]
 
-    print(f'Saving weather: {state}')
+    print(f"Saving weather: {state}")
 
     return state
 
@@ -301,8 +313,8 @@ class WorldWeather:
     """
     Function for compatibility with pickle, used for renpy save/load.
     """
-    cw = state.pop('_current_weather')
-    ws = state.pop('_weather_steps')
+    cw = state.pop("_current_weather")
+    ws = state.pop("_weather_steps")
     self.__dict__.update(state)
 
     self._weather_change_listener = None
@@ -310,5 +322,5 @@ class WorldWeather:
     self._current_weather = cw
     self._weather_steps = ws
 
-    print(f'Loading weather2: {self.__dict__}')
-    print(f'Loading weather: {state}')
+    print(f"Loading weather2: {self.__dict__}")
+    print(f"Loading weather: {state}")
