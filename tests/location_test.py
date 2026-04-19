@@ -13,9 +13,7 @@ from worldnavigator.errors import (
   LocationNotFoundError,
 )
 from worldnavigator.locations.base_location import Location, LocationBackground
-from worldnavigator.types.types import Params
-
-# --- Mock Classes for Testing ---
+from worldnavigator.types.types import BaseCondition, Params
 
 
 @evaluate_events
@@ -38,9 +36,6 @@ class MockObject(WorldObject[MockEvents, MockEventsName]):
 
   def _another_event(self, is_other: bool):
     return f"Another event triggered with is_other={is_other}"
-
-
-# --- Tests for WorldObject ---
 
 
 class TestLocation:
@@ -246,6 +241,60 @@ class TestLocation:
     # Assert (Non-existent)
     with pytest.raises(KeyError, match='Object "Mock Object" not found'):
       library.get_object("Mock Object")
+
+  def test_conditional_pipeline(self):
+    """
+    Test that the conditional pipeline correctly evaluates conditions and executes actions.
+
+    Arrange:
+      - Create a location and custom conditions
+      - Define variables to track which actions are executed
+      - Create an object with an interaction that modifies the variable used in the condition
+      - Add conditions to the conditional pipeline
+
+    Act:
+      - Execute the conditional pipeline with different parameters
+
+    Assert:
+      - Verify that the correct actions are executed based on the conditions
+    """
+    # Arrange
+    park = Location(name="Park", description="A place to relax.")
+    bought_ticket = False
+
+    class CustomCondition(BaseCondition):
+      def handle(self, context):
+        if not bought_ticket:
+          return False
+
+        return True
+
+    class CabinEvents:
+      buy_ticket: Annotated[str, Params(), "Buy a ticket to enter the park."]
+
+    class Cabin(WorldObject[CabinEvents, Literal["buy_ticket"]]):
+      def __init__(self):
+        super().__init__("Ticket Booth")
+        self.register_interaction("buy_ticket", self.buy_ticket)
+
+      def buy_ticket(self):
+        nonlocal bought_ticket
+        bought_ticket = True
+        return "You bought a ticket to enter the park."
+
+    cabin = Cabin()
+    park.add_object(cabin)
+
+    park.condition_pipeline + CustomCondition()
+
+    # Act
+    first_result = park.condition_pipeline.handle()
+    cabin.interact("buy_ticket")
+    second_result = park.condition_pipeline.handle()
+
+    # Assert
+    assert first_result.denied
+    assert not second_result.denied
 
 
 class TestLocationBackground:
