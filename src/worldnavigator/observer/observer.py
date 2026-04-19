@@ -1,19 +1,31 @@
-from typing import Callable, Literal, get_type_hints, overload
+from __future__ import annotations
 
-from worldnavigator.observer.events import EventName, CharacterAddedEvent, CharacterRemovedEvent
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Literal, Union, overload
+
+from worldnavigator.errors.is_not_a_function import IsNotAFunctionError
+from worldnavigator.observer.events import EventName
+from worldnavigator.utils.functions import is_a_valid_function
+
+if TYPE_CHECKING:
+  from worldnavigator.core.character import GameCharacter
+  from worldnavigator.locations.base_location import Location
+
+# Allow users to use their own event names
+CustomEventName = Union[EventName, str]
 
 
 class Observer:
   """
   Implements the Observer pattern for event handling in the WorldNavigator system.
 
-  Provides a foundation for objects that need to emit events and 
+  Provides a foundation for objects that need to emit events and
   respond to events from other objects. It allows for type-safe event registration
   and triggering with proper argument validation.
 
-  This class is used as a base for objects like :class:`Location <worldnavigator.locations.base_location.Location>` and :class:`World <worldnavigator.core.world.World>` that need to
-  communicate state changes (such as characters being added or removed) to other
-  components of the system.
+  This class is used as a base for objects like :class:`Location <worldnavigator.locations.base_location.Location>`
+  and :class:`World <worldnavigator.core.world.World>` that need to communicate state changes
+  (such as characters being added or removed) to other components of the system.
   """
 
   def __init__(self):
@@ -23,10 +35,10 @@ class Observer:
     This constructor sets up an empty dictionary to hold event listeners,
     mapping event names to their corresponding callback functions.
     """
-    self._events: dict[EventName, Callable] = {}
+    self._events: Dict[str, List[Callable]] = defaultdict(list)
 
   @overload
-  def on(self, event_name: Literal['character_added'], func: Callable[[CharacterAddedEvent], None]) -> None:
+  def on(self, event_name: Literal["character_added"], func: Callable[[GameCharacter, Location], None]) -> None:
     """
     Registers a callback function for the 'character_added' event.
 
@@ -36,7 +48,7 @@ class Observer:
     ...
 
   @overload
-  def on(self, event_name: Literal['character_removed'], func: Callable[[CharacterRemovedEvent], None]) -> None:
+  def on(self, event_name: Literal["character_removed"], func: Callable[[GameCharacter, Location], None]) -> None:
     """
     Registers a callback function for the 'character_removed' event.
 
@@ -45,17 +57,21 @@ class Observer:
     """
     ...
 
-  def on(self, event_name: EventName, func: Callable) -> None:
+  def on(self, event_name: CustomEventName, func: Callable) -> None:
     """
     Listen to an event and call the given function when it is triggered.
 
-    :param EventName event_name: The name of the event to listen to.
+    :param CustomEventName event_name: The name of the event to listen to.
     :param Callable func: The function to call when the event is triggered.
     """
-    self._events[event_name] = func
+    if not is_a_valid_function(func):
+      raise IsNotAFunctionError(f"The provided callback for event '{event_name}' is not a valid function.")
+
+    if func not in self._events[event_name]:
+      self._events[event_name].append(func)
 
   @overload
-  def trigger(self, event_name: Literal['character_added'], data: CharacterAddedEvent) -> None:
+  def trigger(self, event_name: Literal["character_added"], data: GameCharacter, location: Location) -> None:
     """
     Triggers the 'character_added' event with the provided data.
 
@@ -65,7 +81,7 @@ class Observer:
     ...
 
   @overload
-  def trigger(self, event_name: Literal['character_removed'], data: CharacterRemovedEvent) -> None:
+  def trigger(self, event_name: Literal["character_removed"], data: GameCharacter, location: Location) -> None:
     """
     Triggers the 'character_removed' event with the provided data.
 
@@ -74,30 +90,19 @@ class Observer:
     """
     ...
 
-  def trigger(self, event_name: EventName, data: dict) -> object:
+  def trigger(self, event_name: CustomEventName, *data: Any) -> None:
     """
-    Trigger an event with the given data.
+    Trigger an event with the given data and notify all registered listeners.
 
     This method checks if the event is registered and validates the data
-    against the expected types before calling the registered callback function.
+    against the expected types before calling the registered callback functions.
+    It supports multiple listeners per event.
 
-    :param EventName event_name: The name of the event to trigger.
-    :param dict data: The data to pass to the event.
-
-    :return: The result of the callback function.
-    :raises ValueError: If the event is not registered or if the data does not match the expected types.
+    :param CustomEventName event_name: The name of the event to trigger.
+    :param Any data: The positional arguments to pass to the event listeners.
     """
     if event_name not in self._events:
-      raise ValueError('Event not registered')
+      return
 
-    func = self._events[event_name]
-
-    types_hints = get_type_hints(func)
-    for key, value in types_hints.items():
-      if key not in data:
-        raise ValueError(f'Missing argument "{key}" in event "{event_name}"')
-
-      if not isinstance(data[key], value):
-        raise ValueError(f'Argument "{key}" in event "{event_name}" must be of type "{value}"')
-
-    return func(**data)
+    for func in self._events[event_name]:
+      func(*data)
