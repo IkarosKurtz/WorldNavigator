@@ -6,6 +6,7 @@ from worldnavigator.core.world_object import WorldObject, WorldObjectResult
 from worldnavigator.decorators.function_decorators import evaluate_events
 from worldnavigator.errors import IsNotAFunctionError
 from worldnavigator.errors.event_not_found import EventNotFound
+from worldnavigator.errors.not_event_type import NotEventTypeError
 from worldnavigator.types.types import Params
 
 # --- Mock Classes for Testing ---
@@ -49,6 +50,30 @@ class TestWorldObject:
     assert obj.name == "MockItem"
     assert "touch" in obj.events
     assert "look" in obj.events
+
+  def test_initialization_without_events(self):
+    """
+    Test initialization of a WorldObject without defining events.
+
+    Arrange:
+      - Create a class without events and attempt to instantiate it.
+
+    Act & Assert:
+      - Verify that NotEventTypeError is raised due to missing EventType.
+    """
+    # Arrange & Act & Assert
+    with pytest.raises(NotEventTypeError) as exc_info:
+
+      class NoEventsObject(WorldObject):
+        def __init__(self):
+          super().__init__("NoEventsItem")
+
+      NoEventsObject()
+
+    assert (
+      'The object "NoEventsObject" does not have a valid EventType defined. Please make sure to define an EventType for this object.'
+      == str(exc_info.value)
+    )
 
   def test_register_interaction_success(self):
     """
@@ -104,10 +129,12 @@ class TestWorldObject:
     """
     # Arrange
     import functools
+
     obj = MockObject()
 
     def handle_look():
       return WorldObjectResult(success=True)
+
     partial_func = functools.partial(handle_look)
 
     # Act & Assert
@@ -155,8 +182,10 @@ class TestWorldObject:
     """
     # Arrange
     obj = MockObject()
+
     def handle_touch(force: int):
       return WorldObjectResult(success=True, result=f"Touch with {force}N")
+
     obj.register_interaction("touch", handle_touch)
 
     # Act
@@ -179,8 +208,10 @@ class TestWorldObject:
     """
     # Arrange
     obj = MockObject()
+
     def handle_touch(force: int):
       return WorldObjectResult(success=True)
+
     obj.register_interaction("touch", handle_touch)
 
     # Act & Assert
@@ -221,7 +252,7 @@ class TestWorldObject:
     obj = MockObject()
 
     # Act & Assert
-    with pytest.raises(EventNotFound, match='is not register yet'):
+    with pytest.raises(EventNotFound, match="is not register yet"):
       obj.interact("touch", force=5)
 
   def test_interact_exception_handling(self):
@@ -239,13 +270,15 @@ class TestWorldObject:
     """
     # Arrange
     obj = MockObject()
+
     def failing_func(force: int):
       raise RuntimeError("Something went wrong")
+
     obj.register_interaction("touch", failing_func)
 
     # Act
     res = obj.interact("touch", force=10)
-    
+
     # Assert
     assert res.success is False
     assert "Something went wrong" in str(res.result)

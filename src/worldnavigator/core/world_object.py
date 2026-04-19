@@ -40,6 +40,7 @@ class WorldObject(Generic[EventType, EventName]):
     self._name = name
     self._interactions_func: dict[str, Callable[..., WorldObjectResult]] = {}
     self._details = {}
+    self._define_hints()
 
   #################################################
   ################### Properties ##################
