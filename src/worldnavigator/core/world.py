@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING, List, Dict, Union
+from typing import TYPE_CHECKING, Dict, List, Union
 
-from worldnavigator.errors import DuplicatedLocationError, LocationNotFoundError, CharacterAlreadyPresentError
+from worldnavigator.errors import CharacterAlreadyPresentError, DuplicatedLocationError, LocationNotFoundError
 
 if TYPE_CHECKING:
-  from worldnavigator.locations.base_location import Location
   from worldnavigator.core.character import GameCharacter
+  from worldnavigator.locations.base_location import Location
 
 
 class World:
@@ -24,12 +24,12 @@ class World:
     :param str name: The name of the world.
     """
     self._name = name
-    self._locations: Dict[str, 'Location'] = {}
-    self._total_characters: list['GameCharacter'] = []
+    self._locations: Dict[str, "Location"] = {}
+    self._total_characters: list["GameCharacter"] = []
     self._population = 0
-    self._character_entrypoint: 'Location' = None
-    self._player: 'GameCharacter' = None
-    self._player_current_location: 'Location' = None
+    self._character_entrypoint: "Location" = None
+    self._player: "GameCharacter" = None
+    self._player_current_location: "Location" = None
 
   #################################################
   ################### Properties ##################
@@ -43,14 +43,14 @@ class World:
     return self._name
 
   @property
-  def locations(self) -> List['Location']:
+  def locations(self) -> List["Location"]:
     """
     A list with all the locations in the world
     """
     return list(self._locations.values())
 
   @property
-  def player_current_location(self) -> 'Location':
+  def player_current_location(self) -> "Location":
     """
     The current location of the player
     """
@@ -78,7 +78,7 @@ class World:
     """
     return f'"{self._population}" characters'
 
-  def add_location(self, location: 'Location') -> None:
+  def add_location(self, location: "Location") -> None:
     """
     Add a new location to the world
 
@@ -89,11 +89,11 @@ class World:
     if location.name in self._locations:
       raise DuplicatedLocationError(f'Location "{location.name}" is already in the world.')
 
-    location.on('character_added', self._character_added)
-    location.on('character_removed', self._character_removed)
+    location.on("character_added", self._character_added)
+    location.on("character_removed", self._character_removed)
     self._locations[location.name] = location
 
-  def remove_location(self, location_name: str) -> 'Location':
+  def remove_location(self, location_name: str) -> "Location":
     """
     Remove some location with his name
 
@@ -105,7 +105,7 @@ class World:
 
     return self._locations.pop(location_name)
 
-  def get_location(self, location_name: str) -> 'Location':
+  def get_location(self, location_name: str) -> "Location":
     """
     Get a location by it's name
 
@@ -117,7 +117,7 @@ class World:
 
     return self._locations[location_name]
 
-  def where_is(self, character: 'GameCharacter') -> str:
+  def where_is(self, character: "GameCharacter") -> str:
     """
     Determines where a specific character is located.
 
@@ -136,13 +136,13 @@ class World:
     """
     Get a string with the location of all characters in the world
     """
-    final_string = ''
+    final_string = ""
     for character in self._total_characters:
       final_string += f'"{character.name}" is in "{character.current_location}"\n'
 
     return final_string
 
-  def character_entrypoint(self, location: Union[str, 'Location']) -> None:
+  def character_entrypoint(self, location: Union[str, "Location"]) -> None:
     """
     Set spawn point for characters, this means when you use :py:meth:`~World.add_character` it will be moved to this location, if not set, you can't add characters.
 
@@ -155,7 +155,7 @@ class World:
 
     self._character_entrypoint = location
 
-  def add_character(self, character: 'GameCharacter') -> None:
+  def add_character(self, character: "GameCharacter") -> None:
     """
     Add a character to the world, the character will be on the ``character_entrypoint`` location, use :py:meth:`~World.character_entrypoint`.
 
@@ -165,7 +165,7 @@ class World:
     :raises CharacterAlreadyPresentError: If the character is already in the world.
     """
     if self._character_entrypoint is None:
-      raise ValueError('No character entrypoint defined')
+      raise ValueError("No character entrypoint defined")
 
     # We don't want to add the same character twice
     if character in self._total_characters:
@@ -174,11 +174,11 @@ class World:
     self._total_characters.append(character)
     self._character_entrypoint.add_character(character)
 
-  def move_character(self, character: 'GameCharacter', location: Union[str, 'Location']) -> bool:
+  def move_character(self, character: "GameCharacter", location: Union[str, "Location"]) -> bool:
     """
     Use this method to move a character to a different location. This is the recommended way to move characters.
 
-    .. attention:: 
+    .. attention::
 
       You can also do it in the old way, that consists in get the location you want
       to move and the current location, and use :py:meth:`~worldnavigator.locations.base_location.Location.add_character`
@@ -212,7 +212,7 @@ class World:
     location.add_character(character)
     return True
 
-  def add_player(self, character: 'GameCharacter', location: Union[str, 'Location']) -> None:
+  def add_player(self, character: "GameCharacter", location: Union[str, "Location"]) -> None:
     """
     Set the player character in the selected location, is not necessary use the :meth:`~worldnavigator.core.world.World.add_character`with player because is a special case.
 
@@ -223,10 +223,10 @@ class World:
       location = self.get_location(location)
 
     self._player = character
-    self._player.current_location = location
+    self._player.current_location = location.name
     self._player_current_location = location
 
-  def move_player(self, location: Union[str, 'Location']) -> None:
+  def move_player(self, location: Union[str, "Location"]) -> None:
     """
     Move the player character to a different location.
 
@@ -235,7 +235,7 @@ class World:
     if isinstance(location, str):
       location = self.get_location(location)
 
-    self._player.current_location = location
+    self._player.current_location = location.name
     self._player_current_location = location
 
   #################################################
@@ -244,7 +244,7 @@ class World:
 
   def __getstate__(self) -> object:
     state = self.__dict__.copy()
-    print(f'Saving World: {state}')
+    print(f"Saving World: {state}")
 
     return state
 
@@ -252,7 +252,7 @@ class World:
     self.__dict__.update(state)
 
     for location in self._locations.values():
-      location.on('character_added', self._character_added)
-      location.on('character_removed', self._character_removed)
+      location.on("character_added", self._character_added)
+      location.on("character_removed", self._character_removed)
 
-    print(f'Loading World: {state}')
+    print(f"Loading World: {state}")
