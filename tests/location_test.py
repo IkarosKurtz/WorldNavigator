@@ -244,19 +244,21 @@ class TestLocation:
 
   def test_conditional_pipeline(self):
     """
-    Test that the conditional pipeline correctly evaluates conditions and executes actions.
+    Test that the location's conditional pipeline correctly integrates with WorldObjects.
 
     Arrange:
-      - Create a location and custom conditions
-      - Define variables to track which actions are executed
-      - Create an object with an interaction that modifies the variable used in the condition
-      - Add conditions to the conditional pipeline
+      - Create a location with a custom condition that checks a local variable.
+      - Create a WorldObject (Ticket Booth) with an interaction that updates that variable.
+      - Add the condition to the location's pipeline.
 
     Act:
-      - Execute the conditional pipeline with different parameters
+      - Handle the pipeline before buying a ticket.
+      - Interact with the booth to buy a ticket.
+      - Handle the pipeline again after buying the ticket.
 
     Assert:
-      - Verify that the correct actions are executed based on the conditions
+      - Verify the first handle() call is denied.
+      - Verify the second handle() call is allowed after the interaction.
     """
     # Arrange
     park = Location(name="Park", description="A place to relax.")
