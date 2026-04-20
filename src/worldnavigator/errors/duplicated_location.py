@@ -6,6 +6,6 @@ class DuplicatedLocationError(Exception):
   where that location is already present.
   """
 
-  def __init__(self, message: str = 'The location is already connected.'):
+  def __init__(self, message: str = "The location is already connected."):
     self.message = message
     super().__init__(self.message)

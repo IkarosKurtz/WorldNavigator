@@ -6,6 +6,6 @@ class CharacterNotFoundError(Exception):
   in the selected location.
   """
 
-  def __init__(self, message: str = 'Character not found.'):
+  def __init__(self, message: str = "Character not found."):
     self.message = message
     super().__init__(self.message)

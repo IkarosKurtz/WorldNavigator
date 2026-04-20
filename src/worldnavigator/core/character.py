@@ -2,7 +2,7 @@ import sys
 from typing import Any, Callable, Generic, Optional, TypeVar
 from types import MethodType
 
-ExtraData = TypeVar('ExtraData', dict, None)
+ExtraData = TypeVar("ExtraData", dict, None)
 
 
 class GameCharacter(Generic[ExtraData]):
@@ -42,7 +42,7 @@ class GameCharacter(Generic[ExtraData]):
     self.name: str = name
     self._renpy_kwargs: dict[str, Any] = kwargs
 
-    if 'renpy' in sys.modules:
+    if "renpy" in sys.modules:
       self.c = Character(name, **self._renpy_kwargs)  # type: ignore
     else:
       self.c = None
@@ -125,7 +125,7 @@ class GameCharacter(Generic[ExtraData]):
     """
     state = self.__dict__.copy()
 
-    print(f'Saving character: {state}')
+    print(f"Saving character: {state}")
 
     return state
 
@@ -135,4 +135,4 @@ class GameCharacter(Generic[ExtraData]):
     """
     self.__dict__.update(state)
 
-    print(f'Loading character: {state}')
+    print(f"Loading character: {state}")

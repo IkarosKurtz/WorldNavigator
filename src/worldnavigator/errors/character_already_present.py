@@ -6,6 +6,6 @@ class CharacterAlreadyPresentError(Exception):
   where that character is already present.
   """
 
-  def __init__(self, message: str = 'Character already present in this location.'):
+  def __init__(self, message: str = "Character already present in this location."):
     self.message = message
     super().__init__(self.message)

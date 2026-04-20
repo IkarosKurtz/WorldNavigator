@@ -1,7 +1,7 @@
 from typing import Literal, TypedDict
 
 
-EventName = Literal['character_added', 'character_removed']
+EventName = Literal["character_added", "character_removed"]
 """
 A type representing the names of events that can occur in the system.
 
@@ -19,6 +19,7 @@ class CharacterAddedEvent(TypedDict):
   - name: str
   - location: str
   """
+
   name: str
   location: str
 
@@ -30,5 +31,6 @@ class CharacterRemovedEvent(TypedDict):
   - name: str
   - location: str
   """
+
   name: str
   location: str

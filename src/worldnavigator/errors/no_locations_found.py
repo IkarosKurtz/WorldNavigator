@@ -6,6 +6,6 @@ class NoLocationsFoundError(Exception):
   in the provided world data.
   """
 
-  def __init__(self, message: str = 'No locations found in the world data'):
+  def __init__(self, message: str = "No locations found in the world data"):
     self.message = message
     super().__init__(self.message)
