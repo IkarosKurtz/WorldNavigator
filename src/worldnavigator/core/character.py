@@ -1,3 +1,4 @@
+import sys
 from typing import Any, Callable, Generic, Optional, TypeVar
 from types import MethodType
 
@@ -41,7 +42,7 @@ class GameCharacter(Generic[ExtraData]):
     self.name: str = name
     self._renpy_kwargs: dict[str, Any] = kwargs
 
-    if 'renpy' in globals():
+    if 'renpy' in sys.modules:
       self.c = Character(name, **self._renpy_kwargs)  # type: ignore
     else:
       self.c = None
